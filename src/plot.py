@@ -1,0 +1,4 @@
+'''
+Generate error plots
+
+'''
