@@ -3,6 +3,8 @@
 */__pycache__/*
 */__marimo__/*
 */*.egg-info/*
+.DS_Store
+*/.DS_Store
 
 # data
 */eccc_data/*
