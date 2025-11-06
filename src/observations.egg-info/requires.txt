@@ -1,4 +1,0 @@
-marimo>=0.17.7
-matplotlib>=3.10.7
-pandas>=2.3.3
-plotly>=6.4.0

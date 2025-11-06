@@ -1,6 +1,6 @@
 
-OBS_DATA_DIR = "/Users/Julie/Desktop/observations/data/eccc_data"
-PRED_DATA_DIR = "/Users/Julie/Desktop/observations/data/prediction_data"
+OBS_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/eccc_data"
+PRED_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/prediction_data"
 
 # DOMAIN BOUNDS
 DOMAIN_MINX = -126.77383

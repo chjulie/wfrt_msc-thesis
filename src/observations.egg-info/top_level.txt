@@ -1,6 +1,0 @@
-__init__
-__marimo__
-data_constants
-evaluate
-observations
-plot
