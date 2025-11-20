@@ -5,6 +5,8 @@ import numpy as np
 import torch
 import argparse
 from collections import defaultdict
+from netCDF4 import Dataset
+import pickle
 
 import earthkit.data as ekd
 import earthkit.regrid as ekr
@@ -20,7 +22,7 @@ from anemoi.models.layers.processor import TransformerProcessor
 from ecmwf.opendata import Client as OpendataClient
 
 sys.path.append('../')
-from data_constants import DOMAIN_MINX, DOMAIN_MAXX, DOMAIN_MINY, DOMAIN_MAXY, PRED_RES_DIR
+from data_constants import DOMAIN_MINX, DOMAIN_MAXX, DOMAIN_MINY, DOMAIN_MAXY, PRED_DATA_DIR
 
 # Create dummy flash_attn package and submodule
 import sys
@@ -64,10 +66,10 @@ PARAM_PL = ["gh", "t", "u", "v", "w", "q"]
 LEVELS = [1000, 925, 850, 700, 600, 500, 400, 300, 250, 200, 150, 100, 50]
 SOIL_LEVELS = [1,2]
 
-def get_open_data(param, date, levelist=[]):
+def get_open_data(param, input_date, levelist=[]):
     fields = defaultdict(list)
     # Get data at time t and t-1:
-    for date in [date - datetime.timedelta(hours=6), date]:
+    for date in [input_date - datetime.timedelta(hours=6), input_date]:
         data = ekd.from_source("ecmwf-open-data", date=date, param=param, levelist=levelist) # <class 'earthkit.data.readers.grib.file.GRIBReader'>
         for f in data:  # <class 'earthkit.data.readers.grib.codes.GribField'>
             assert f.to_numpy().shape == (721,1440)
@@ -88,32 +90,40 @@ def fix(lons):
     # Shift the longitudes from 0-360 to -180-180
     return np.where(lons > 180, lons - 360, lons)
 
+
+def save_state(state, path):
+    with open(path, "wb") as f:
+        pickle.dump(state, f, protocol=pickle.HIGHEST_PROTOCOL)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process WRFOUT data files.")
     parser.add_argument(
-        "--date", type=str, required=True, help="Date in YYYY-mm-dd format"
+        "--date", type=str, required=True, help="Date in YYYY-mm-dd format. Must be < 1 month old."
     )
-    parser.add_argument(
-        "--field", type=str, required=True, help="'temp'"
-    )
+    # parser.add_argument(
+    #     "--field", type=str, required=True, help="'temp'"
+    # )
     args = parser.parse_args()
 
-    date = datetime.strptime(args.date + 'T08:00:00', '%Y-%m-%dT%H:%M:%S')
+    date = datetime.datetime.strptime(args.date + 'T06:00:00', '%Y-%m-%dT%H:%M:%S') # time should be 06,12,18 or 00.
+    print(" ** IDATE: ", type(date))
+    # tdate = OpendataClient().latest()
+    # print(" ** DATE: ", type(tdate))
 
     # Create necessary dir
     os.makedirs(PRED_RES_DIR, exist_ok=True)
 
     ## Import initial conditions from ECMWF Open Data
     fields = {}
-    fields.update(get_open_data(param=PARAM_SFC, date=date))
+    fields.update(get_open_data(param=PARAM_SFC, input_date=date))
 
-    fields.update(get_open_data(param=PARAM_PL, date=date, levelist=LEVELS))
+    fields.update(get_open_data(param=PARAM_PL, input_date=date, levelist=LEVELS))
     # Convert geopotential height into geopotential (transform GH to Z)
     for level in LEVELS:
         gh = fields.pop(f"gh_{level}")
         fields[f"z_{level}"] = gh * 9.80665
         
-    soil=get_open_data(param=PARAM_SOIL, date=date, levelist=SOIL_LEVELS)
+    soil=get_open_data(param=PARAM_SOIL, input_date=date, levelist=SOIL_LEVELS)
 
     # soil parameters need to be renamed to be consistent with training
     mapping = {'sot_1': 'stl1', 'sot_2': 'stl2',
@@ -132,7 +142,7 @@ if __name__ == "__main__":
 
     # Modify model to NOT use flash-attn
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = torch.load("../data/aifs-single-mse-1.0.ckpt", map_location=device, weights_only=False).to(device)
+    model = torch.load("../../data/prediction_data/aifs-single-mse-1.0.ckpt", map_location=device, weights_only=False).to(device)
     model.model.processor = TransformerProcessor(
         num_layers=16,
         window_size=1024,
@@ -150,66 +160,111 @@ if __name__ == "__main__":
 
     # Run the forecast
     for state in runner.run(input_state=input_state, lead_time=12):
+        print(state.keys())
         print_state(state)
 
     ## Plot generation
     DISP_VAR = "2t"
     latitudes = state["latitudes"]
     longitudes = state["longitudes"]
+    fixed_longitudes = fix(longitudes)
     values = state["fields"][DISP_VAR]
 
-    print(' -- values --')
-    print(' - type: ', type(values))
-    print(' - shape: ', values.shape)
-    print('\n')
+    # print(' -- values --')
+    # print(' - type: ', type(values))
+    # print(' - shape: ', values.shape)
+    # print('\n')
 
-    fixed_longitudes = fix(longitudes)
-    print(' -- longitudes --')
-    print('- type: ', type(fixed_longitudes))
-    print('- shape: ', fixed_longitudes.shape)
-    print('- len: ', len(fixed_longitudes))
-    print('- [0]: ', fixed_longitudes[0])
-    print('- [-1]: ', fixed_longitudes[-1])
-    print('- res: ', fixed_longitudes[1] - fixed_longitudes[0])
-    print('\n')
+    # print(' -- longitudes --')
+    # print('- type: ', type(longitudes))
+    # print('- shape: ', longitudes.shape)
+    # print('- len: ', len(longitudes))
+    # print('- [0]: ', longitudes[0])
+    # print('- [-1]: ', longitudes[-1])
+    # print('- res: ', longitudes[1] - longitudes[0])
+    # print('\n')
 
-    print(' -- latitudes --')
-    print('- type: ', type(latitudes))
-    print('- shape: ', latitudes.shape)
-    print('- len: ', len(latitudes))
-    print('- [0]: ', latitudes[0])
-    print('- [-1]: ', latitudes[-1])
-    print('- res: ', latitudes[1] - latitudes[0])
-    print('\n')
+    # print(' -- fixed longitudes --')
+    # print('- type: ', type(fixed_longitudes))
+    # print('- shape: ', fixed_longitudes.shape)
+    # print('- len: ', len(fixed_longitudes))
+    # print('- [0]: ', fixed_longitudes[0])
+    # print('- [-1]: ', fixed_longitudes[-1])
+    # print('- res: ', fixed_longitudes[1] - fixed_longitudes[0])
+    # print('\n')
 
-    domain_mask = ((longitudes >= DOMAIN_MINX) & (longitudes <= DOMAIN_MAXX) &
+    # print(' -- latitudes --')
+    # print('- type: ', type(latitudes))
+    # print('- shape: ', latitudes.shape)
+    # print('- len: ', len(latitudes))
+    # print('- [0]: ', latitudes[0])
+    # print('- [-1]: ', latitudes[-1])
+    # print('- res: ', latitudes[1] - latitudes[0])
+    # print('\n')
+
+    domain_mask = ((fixed_longitudes >= DOMAIN_MINX) & (fixed_longitudes <= DOMAIN_MAXX) &
         (latitudes >= DOMAIN_MINY) & (latitudes <= DOMAIN_MAXY))
     domain_lon = fixed_longitudes[domain_mask]
     domain_lat = latitudes[domain_mask]
     domain_values = values[domain_mask]
+    # global_data = [state["fields"][sub_key] for sub_key in state["fields"].keys()]
+    # domain_fields = dict(zip(state["fields"].keys(), [data[domain_mask] for data in global_data]))
+    domain_fields = dict(zip(state["fields"].keys(), [data[domain_mask] for data in state["fields"].values()]))
+    print(f" ** STATE[FIELDS]: {type(state["fields"])}, keys= {state["fields"].keys()}, val= {state["fields"].values()}") #, shape = {state["fields"].shape}, [0] = {state["fields"][0]}")
+    # domain_fields = state["fields"][:,domain_mask]
 
-    fig, ax = plt.subplots(1,2,figsize=(11, 6), subplot_kw={"projection": ccrs.PlateCarree()})
+    domain_state = {
+        "date": state["date"],
+        "fields": domain_fields,
+        "latitudes": domain_lat,
+        "longitudes": domain_lon
+    }
 
-    # global domain
-    ax[0].coastlines()
-    ax[0].add_feature(cfeature.BORDERS, linestyle=":")
+    ## Save predicted domain_state to .pkl file
+    state["longitudes"] = fixed_longitudes
+    save_state(domain_state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%d')}_regional_state.pkl")
+    save_state(state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%d')}_global_state.pkl")
 
-    triangulation = tri.Triangulation(fix(longitudes), latitudes)
+    # print(' -- domain longitudes --')
+    # print('- type: ', type(domain_lon))
+    # print('- shape: ', domain_lon.shape)
+    # print('- len: ', len(domain_lon))
+    # print('- [0]: ', domain_lon[0])
+    # print('- [-1]: ', domain_lon[-1])
+    # print('- res: ', domain_lon[1] - domain_lon[0])
+    # print('\n')
 
-    contour=ax[0].tricontourf(triangulation, values, levels=20, transform=ccrs.PlateCarree(), cmap="RdBu")
-    cbar = fig.colorbar(contour, ax=ax[0], orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
+    # print(' -- domain latitudes --')
+    # print('- type: ', type(domain_lat))
+    # print('- shape: ', domain_lat.shape)
+    # print('- len: ', len(domain_lat))
+    # print('- [0]: ', domain_lat[0])
+    # print('- [-1]: ', domain_lat[-1])
+    # print('- res: ', domain_lat[1] - domain_lat[0])
+    # print('\n')
 
-    # regional domain
-    ax[1].coastlines()
-    ax[1].add_feature(cfeature.BORDERS, linestyle=":")
+    # fig, ax = plt.subplots(1,2,figsize=(11, 6), subplot_kw={"projection": ccrs.PlateCarree()})
 
-    domain_triangulation = tri.Triangulation(domain_lon, domain_lat)
+    # # global domain
+    # ax[0].coastlines()
+    # ax[0].add_feature(cfeature.BORDERS, linestyle=":")
 
-    contour=ax[1].tricontourf(domain_triangulation, domain_values, levels=20, transform=ccrs.PlateCarree(), cmap="RdBu")
-    cbar = fig.colorbar(contour, ax=ax[1], orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
+    # triangulation = tri.Triangulation(fix(longitudes), latitudes)
 
-    fig.suptitle("Temperature at {}".format(state["date"]))
-    plt.savefig(os.path.join(PRED_RES_DIR, f"{EXPERIENCE}_{DISP_VAR}_{datetime.strftime(date, '%Y%m%d_%H:%M:%S')}"), )
+    # contour=ax[0].tricontourf(triangulation, values, levels=20, transform=ccrs.PlateCarree(), cmap="RdBu")
+    # cbar = fig.colorbar(contour, ax=ax[0], orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
+
+    # # regional domain
+    # ax[1].coastlines()
+    # ax[1].add_feature(cfeature.BORDERS, linestyle=":")
+
+    # domain_triangulation = tri.Triangulation(domain_lon, domain_lat)
+
+    # contour=ax[1].tricontourf(domain_triangulation, domain_values, levels=20, transform=ccrs.PlateCarree(), cmap="RdBu")
+    # cbar = fig.colorbar(contour, ax=ax[1], orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
+
+    # fig.suptitle("Temperature at {}".format(state["date"]))
+    # plt.savefig(os.path.join(PRED_RES_DIR, f"{EXPERIENCE}_{DISP_VAR}_{date.strftime(format='%Y%m%d_%H:%M:%S')}"), )
 
     print(" > Program finished successfully!")
 
