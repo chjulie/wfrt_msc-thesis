@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # print(" ** DATE: ", type(tdate))
 
     # Create necessary dir
-    os.makedirs(PRED_RES_DIR, exist_ok=True)
+    os.makedirs(PRED_DATA_DIR, exist_ok=True)
 
     ## Import initial conditions from ECMWF Open Data
     fields = {}

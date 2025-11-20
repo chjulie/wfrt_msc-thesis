@@ -8,7 +8,7 @@ import matplotlib.tri as tri
 import sys
 sys.path.append('../')
 
-from data_constants import DOMAIN_MINX, DOMAIN_MAXX, DOMAIN_MINY, DOMAIN_MAXY, PRED_RES_DIR
+from data_constants import DOMAIN_MINX, DOMAIN_MAXX, DOMAIN_MINY, DOMAIN_MAXY, PRED_DATA_DIR, PRED_RES_DIR
 
 def read_pkl(path):
 
@@ -25,10 +25,10 @@ def read_pkl(path):
 if __name__ == "__main__":
     EXPERIENCE = "aifs-single-v1"
     date_str = '20251118'
-    domain = 'global'   # 'regional', 'global'
+    domain = 'regional'   # 'regional', 'global'
 
     # Open pkl file
-    pred_data_path = f"{PRED_RES_DIR}/{date_str}_{domain}_state.pkl"
+    pred_data_path = f"{PRED_DATA_DIR}/{date_str}_{domain}_state.pkl"
     with open(pred_data_path, "rb") as f:
         domain_state = pickle.load(f)
 
@@ -41,11 +41,12 @@ if __name__ == "__main__":
     # print("\nDate: ")
     # print(f" date: {date}")
 
-    # print("\nLatitudes: ")
-    # print(f" lat: {latitudes.shape}")
+    print("\nLatitudes: ")
+    print(f" lat: {latitudes.shape}")
 
-    # print("\nLongitudes: ")
-    # print(f" lon: {longitudes.shape}")
+    print("\nLongitudes: ")
+    print(f" lon: {longitudes.shape}")
+    print(longitudes)
 
     # print("\nFields: ")
     # for k,v in fields.items():
@@ -59,10 +60,33 @@ if __name__ == "__main__":
 
     triangulation = tri.Triangulation(longitudes, latitudes)
 
-    contour=ax.tricontourf(triangulation, fields[DISP_VAR], levels=20, transform=ccrs.PlateCarree(), cmap="RdBu")
+    contour=ax.tricontourf(triangulation, fields[DISP_VAR], levels=20, cmap="RdBu") # transform=ccrs.PlateCarree()
     cbar = fig.colorbar(contour, ax=ax, orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
 
+    minx, maxx = triangulation.x.min(), triangulation.x.max()
+    miny, maxy = triangulation.y.min(), triangulation.y.max()
+
+    size = max(maxx - minx, maxy - miny)
+    centerx = 0.5 * (minx + maxx)
+    centery = 0.5 * (miny + maxy)
+
+    ax.set_extent([centerx - size/2, centerx + size/2,
+                centery - size/2, centery + size/2],
+                crs=ccrs.PlateCarree())
+
+    gl = ax.gridlines(
+        draw_labels=True,
+        linewidth=0.5,
+        color='gray',
+        alpha=0.5,
+        linestyle='--'
+    )
+
+    # Optional: remove labels on top and right
+    # gl.top_labels = False
+    # gl.right_labels = False
+
     fig.suptitle(f"{DISP_VAR} at {date.strftime(format='%Y%m%d_%H:%M:%S')}")
-    plt.savefig(f"{PRED_RES_DIR}/{date.strftime(format='%Y%m%d')}_{EXPERIENCE}_{DISP_VAR}")
+    plt.savefig(f"{PRED_RES_DIR}/{date.strftime(format='%Y%m%d')}_{EXPERIENCE}_{domain}_{DISP_VAR}")
 
     print(" > Program finished successfully !")
