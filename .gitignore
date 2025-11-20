@@ -9,3 +9,9 @@
 # data
 */eccc_data/*
 */prediction_data/*
+
+# slurm output files
+*.out
+
+# figures
+*.png

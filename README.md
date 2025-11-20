@@ -8,8 +8,8 @@ For the actual regional data-driven model can be found in this repository: https
 
 ## Models
 We compare the following models:
-- AIFS-v1 : low-resolution global data-driven model
-- wfrt-anemoi : high-resolution regional data-driven model (British Columbia)
+- **aifs-v1** : low-resolution global data-driven model
+- **wfrt-anemoi** : high-resolution regional data-driven model (British Columbia)
 - ... : high-resolution Numerical Weather Prediction (NWP) model 
 
 ## Evaluation methods
@@ -30,3 +30,7 @@ A gridded reanalysis dataset is used as well to assess the models. We use the _C
 ## How to use this repository
 
 ## Acknowledgments
+- **European Center for Medium-range Weather Forecasting, ECMWF** - aifs-v1 model and open analysis data
+- **Environment and Climate Change Canada, ECCC** - publicly available observations
+- **Digital Research Alliance, DRA** - _Fir_ computing cluster
+- **UBC Weather Forecast Research Team, WFRT** - regional dataset and expertise

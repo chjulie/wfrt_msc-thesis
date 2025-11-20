@@ -9,4 +9,21 @@ dependencies = [
     "matplotlib>=3.10.7",
     "pandas>=2.3.3",
     "plotly>=6.4.0",
+    "anemoi-datasets==0.5.7",
+    "anemoi-inference[huggingface]==0.4.9",
+    "anemoi-models==0.3.1",
+    "anemoi-transform==0.1.16",
+    "boto3==1.40.32",
+    "earthkit==0.12.0",
+    "earthkit-regrid==0.4.0",
+    "ecmwf-opendata==0.3.23",
+    "huggingface-hub==0.35.0",
+    "anemoi-registry>=0.1.8",
+    "cartopy>=0.25.0",
+    "pip>=25.2",
+    "filetype>=1.2.0",
+    "netcdf4>=1.7.3",
 ]
+
+[tool.uv.extra-build-dependencies]
+flash-attn = ["setuptools", "torch"]
