@@ -10,6 +10,8 @@ def _():
     import pandas as pd
     import numpy as np
     import plotly.graph_objects as go
+    import sys
+    sys.path.append('../')
 
     from data_constants import OBS_DATA_DIR
     return OBS_DATA_DIR, go, mo, pd
@@ -51,9 +53,15 @@ def _(df):
 
 
 @app.cell
+def _(df):
+    df.x
+    return
+
+
+@app.cell
 def _(go, pd):
     def plot_values(df: pd.DataFrame, field: str):
-    
+
         fig = go.Figure(go.Scattermap(
             lat=df.y,
             lon=df.x,
@@ -76,7 +84,8 @@ def _(go, pd):
 
         fig.update_layout(
         title=dict(text=f"ECCC stations observation for {field}"),
-        autosize=True,
+        height=600,
+        width=500,
         showlegend=False,
         map=dict(
             bearing=0,
@@ -91,7 +100,6 @@ def _(go, pd):
         )
 
         fig.show()
-
     return (plot_values,)
 
 
@@ -99,7 +107,7 @@ def _(go, pd):
 def _(df, plot_values):
     date = "2025-08-01T08:00:00"
     print(date)
-    daily_df = df[(df["UTC_DATE"]=="2025-08-01T08:00:00")]
+    daily_df = df[(df["UTC_DATE"]=="2025-08-01T16:00:00")]
     daily_df.describe()
     plot_values(daily_df, "TEMP")
     return

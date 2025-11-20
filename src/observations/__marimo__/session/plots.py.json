@@ -1,0 +1,151 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.17.7"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "e92b4f173e2a1a63cb199c494c90b406",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "6cc589273ba8fe3c206d9dc2172c4270",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "59bb768caf163bb79663f2bc56890afb",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "cc8a25f63c02d1827f6ec68ae230efae",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='bkHC-0' random-id='ae22783a-94cc-b625-4c81-ea44c08dcfbc'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;x&#92;&quot;:-125.5694444444,&#92;&quot;y&#92;&quot;:64.9097222222,&#92;&quot;ID&#92;&quot;:&#92;&quot;2201701.2025.8.1.8&#92;&quot;,&#92;&quot;STN_ID&#92;&quot;:52798,&#92;&quot;UTC_DATE&#92;&quot;:&#92;&quot;2025-08-01T15:00:00&#92;&quot;,&#92;&quot;TEMP&#92;&quot;:12.6,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:null,&#92;&quot;WIND_SPEED&#92;&quot;:8,&#92;&quot;WIND_DIRECTION&#92;&quot;:35.0},{&#92;&quot;x&#92;&quot;:-125.5694444444,&#92;&quot;y&#92;&quot;:64.9097222222,&#92;&quot;ID&#92;&quot;:&#92;&quot;2201705.2025.8.1.8&#92;&quot;,&#92;&quot;STN_ID&#92;&quot;:52967,&#92;&quot;UTC_DATE&#92;&quot;:&#92;&quot;2025-08-01T15:00:00&#92;&quot;,&#92;&quot;TEMP&#92;&quot;:12.6,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:8,&#92;&quot;WIND_DIRECTION&#92;&quot;:35.0},{&#92;&quot;x&#92;&quot;:-126.7533566667,&#92;&quot;y&#92;&quot;:65.287525,&#92;&quot;ID&#92;&quot;:&#92;&quot;2202810.2025.8.1.8&#92;&quot;,&#92;&quot;STN_ID&#92;&quot;:43004,&#92;&quot;UTC_DATE&#92;&quot;:&#92;&quot;2025-08-01T15:00:00&#92;&quot;,&#92;&quot;TEMP&#92;&quot;:12.5,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:0,&#92;&quot;WIND_DIRECTION&#92;&quot;:0.0},{&#92;&quot;x&#92;&quot;:-125.7725,&#92;&quot;y&#92;&quot;:49.0822222222,&#92;&quot;ID&#92;&quot;:&#92;&quot;1038204.2025.8.1.8&#92;&quot;,&#92;&quot;STN_ID&#92;&quot;:52198,&#92;&quot;UTC_DATE&#92;&quot;:&#92;&quot;2025-08-01T16:00:00&#92;&quot;,&#92;&quot;TEMP&#92;&quot;:14.2,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:null,&#92;&quot;WIND_SPEED&#92;&quot;:8,&#92;&quot;WIND_DIRECTION&#92;&quot;:31.0},{&#92;&quot;x&#92;&quot;:-125.7725,&#92;&quot;y&#92;&quot;:49.0822222222,&#92;&quot;ID&#92;&quot;:&#92;&quot;1038210.2025.8.1.8&#92;&quot;,&#92;&quot;STN_ID&#92;&quot;:52960,&#92;&quot;UTC_DATE&#92;&quot;:&#92;&quot;2025-08-01T16:00:00&#92;&quot;,&#92;&quot;TEMP&#92;&quot;:14.2,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:8,&#92;&quot;WIND_DIRECTION&#92;&quot;:31.0}]&quot;' data-total-rows='5' data-total-columns='9' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;x&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;y&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;ID&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;STN_ID&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;UTC_DATE&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;TEMP&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;PRECIP_AMOUNT&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;WIND_SPEED&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;WIND_DIRECTION&quot;,[&quot;number&quot;,&quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-show-data-types='true' data-show-page-size-selector='false' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "163de37e425fde3beb941c7df4429058",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='lEQa-0' random-id='f3e098ee-23b8-06da-22d6-9cca17f25145'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;&#92;&quot;:&#92;&quot;count&#92;&quot;,&#92;&quot;x&#92;&quot;:15.0,&#92;&quot;y&#92;&quot;:15.0,&#92;&quot;ID&#92;&quot;:15,&#92;&quot;STN_ID&#92;&quot;:15.0,&#92;&quot;UTC_DATE&#92;&quot;:15,&#92;&quot;TEMP&#92;&quot;:15.0,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:10.0,&#92;&quot;WIND_SPEED&#92;&quot;:15.0,&#92;&quot;WIND_DIRECTION&#92;&quot;:14.0},{&#92;&quot;&#92;&quot;:&#92;&quot;unique&#92;&quot;,&#92;&quot;x&#92;&quot;:null,&#92;&quot;y&#92;&quot;:null,&#92;&quot;ID&#92;&quot;:15,&#92;&quot;STN_ID&#92;&quot;:null,&#92;&quot;UTC_DATE&#92;&quot;:2,&#92;&quot;TEMP&#92;&quot;:null,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:null,&#92;&quot;WIND_SPEED&#92;&quot;:null,&#92;&quot;WIND_DIRECTION&#92;&quot;:null},{&#92;&quot;&#92;&quot;:&#92;&quot;top&#92;&quot;,&#92;&quot;x&#92;&quot;:null,&#92;&quot;y&#92;&quot;:null,&#92;&quot;ID&#92;&quot;:&#92;&quot;2201701.2025.8.1.8&#92;&quot;,&#92;&quot;STN_ID&#92;&quot;:null,&#92;&quot;UTC_DATE&#92;&quot;:&#92;&quot;2025-08-01T16:00:00&#92;&quot;,&#92;&quot;TEMP&#92;&quot;:null,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:null,&#92;&quot;WIND_SPEED&#92;&quot;:null,&#92;&quot;WIND_DIRECTION&#92;&quot;:null},{&#92;&quot;&#92;&quot;:&#92;&quot;freq&#92;&quot;,&#92;&quot;x&#92;&quot;:null,&#92;&quot;y&#92;&quot;:null,&#92;&quot;ID&#92;&quot;:1,&#92;&quot;STN_ID&#92;&quot;:null,&#92;&quot;UTC_DATE&#92;&quot;:12,&#92;&quot;TEMP&#92;&quot;:null,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:null,&#92;&quot;WIND_SPEED&#92;&quot;:null,&#92;&quot;WIND_DIRECTION&#92;&quot;:null},{&#92;&quot;&#92;&quot;:&#92;&quot;mean&#92;&quot;,&#92;&quot;x&#92;&quot;:-125.9453461481,&#92;&quot;y&#92;&quot;:53.8431586481,&#92;&quot;ID&#92;&quot;:null,&#92;&quot;STN_ID&#92;&quot;:40487.5333333333,&#92;&quot;UTC_DATE&#92;&quot;:null,&#92;&quot;TEMP&#92;&quot;:16.3,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:8.0666666667,&#92;&quot;WIND_DIRECTION&#92;&quot;:14.9285714286},{&#92;&quot;&#92;&quot;:&#92;&quot;std&#92;&quot;,&#92;&quot;x&#92;&quot;:0.5705178211,&#92;&quot;y&#92;&quot;:6.0358890576,&#92;&quot;ID&#92;&quot;:null,&#92;&quot;STN_ID&#92;&quot;:19222.6844411443,&#92;&quot;UTC_DATE&#92;&quot;:null,&#92;&quot;TEMP&#92;&quot;:3.1307233304,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:10.5455926249,&#92;&quot;WIND_DIRECTION&#92;&quot;:15.409608819},{&#92;&quot;&#92;&quot;:&#92;&quot;min&#92;&quot;,&#92;&quot;x&#92;&quot;:-126.7533566667,&#92;&quot;y&#92;&quot;:49.0822222222,&#92;&quot;ID&#92;&quot;:null,&#92;&quot;STN_ID&#92;&quot;:574.0,&#92;&quot;UTC_DATE&#92;&quot;:null,&#92;&quot;TEMP&#92;&quot;:11.9,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:0.0,&#92;&quot;WIND_DIRECTION&#92;&quot;:0.0},{&#92;&quot;&#92;&quot;:&#92;&quot;25%&#92;&quot;,&#92;&quot;x&#92;&quot;:-126.5650268056,&#92;&quot;y&#92;&quot;:49.6676269444,&#92;&quot;ID&#92;&quot;:null,&#92;&quot;STN_ID&#92;&quot;:36368.5,&#92;&quot;UTC_DATE&#92;&quot;:null,&#92;&quot;TEMP&#92;&quot;:13.4,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:0.0,&#92;&quot;WIND_DIRECTION&#92;&quot;:0.0},{&#92;&quot;&#92;&quot;:&#92;&quot;50%&#92;&quot;,&#92;&quot;x&#92;&quot;:-125.9586666667,&#92;&quot;y&#92;&quot;:52.3875,&#92;&quot;ID&#92;&quot;:null,&#92;&quot;STN_ID&#92;&quot;:51419.0,&#92;&quot;UTC_DATE&#92;&quot;:null,&#92;&quot;TEMP&#92;&quot;:17.3,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:7.0,&#92;&quot;WIND_DIRECTION&#92;&quot;:7.5},{&#92;&quot;&#92;&quot;:&#92;&quot;75%&#92;&quot;,&#92;&quot;x&#92;&quot;:-125.5694444444,&#92;&quot;y&#92;&quot;:54.0775277778,&#92;&quot;ID&#92;&quot;:null,&#92;&quot;STN_ID&#92;&quot;:52963.5,&#92;&quot;UTC_DATE&#92;&quot;:null,&#92;&quot;TEMP&#92;&quot;:19.05,&#92;&quot;PRECIP_AMOUNT&#92;&quot;:0.0,&#92;&quot;WIND_SPEED&#92;&quot;:8.0,&#92;&quot;WIND_DIRECTION&#92;&quot;:30.5}]&quot;' data-total-rows='11' data-total-columns='9' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;x&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;y&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;ID&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;STN_ID&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;UTC_DATE&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;TEMP&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;PRECIP_AMOUNT&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;WIND_SPEED&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;WIND_DIRECTION&quot;,[&quot;number&quot;,&quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[[&quot;&quot;,[&quot;string&quot;,&quot;object&quot;]]]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "f10dba42b23bdc5e2ca5043a440cf6bd",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='PKri-0' random-id='f8eeb6de-178a-f4e9-504e-b1d616f10d5c'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;TEMP&#92;&quot;:12.6},{&#92;&quot;TEMP&#92;&quot;:12.6},{&#92;&quot;TEMP&#92;&quot;:12.5},{&#92;&quot;TEMP&#92;&quot;:14.2},{&#92;&quot;TEMP&#92;&quot;:14.2},{&#92;&quot;TEMP&#92;&quot;:19.2},{&#92;&quot;TEMP&#92;&quot;:20.6},{&#92;&quot;TEMP&#92;&quot;:18.9},{&#92;&quot;TEMP&#92;&quot;:20.6},{&#92;&quot;TEMP&#92;&quot;:19.2}]&quot;' data-total-rows='15' data-total-columns='1' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;TEMP&quot;,[&quot;number&quot;,&quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Ylhx",
+      "code_hash": "0a7c53bf2ba6dc00719d22f2c059c96d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='Ylhx-0' random-id='9bee492e-3480-a007-68d8-5ac50232b29e'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;x&#92;&quot;:-125.5694444444},{&#92;&quot;x&#92;&quot;:-125.5694444444},{&#92;&quot;x&#92;&quot;:-126.7533566667},{&#92;&quot;x&#92;&quot;:-125.7725},{&#92;&quot;x&#92;&quot;:-125.7725},{&#92;&quot;x&#92;&quot;:-126.5958333333},{&#92;&quot;x&#92;&quot;:-125.2730555556},{&#92;&quot;x&#92;&quot;:-126.5869444444},{&#92;&quot;x&#92;&quot;:-125.2730555556},{&#92;&quot;x&#92;&quot;:-126.5958333333}]&quot;' data-total-rows='15' data-total-columns='1' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;x&quot;,[&quot;number&quot;,&quot;float64&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "b72e5ba349ead96d3de0a73d50733515",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "f4dea91d7a07bc21fffbb6838ae523ef",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "2025-08-01T08:00:00\n",
+          "mimetype": "text/plain"
+        },
+        {
+          "type": "streamMedia",
+          "name": "media",
+          "mimetype": "text/html",
+          "data": "<marimo-plotly data-figure='{&quot;data&quot;:[{&quot;lat&quot;:{&quot;dtype&quot;:&quot;f8&quot;,&quot;bdata&quot;:&quot;dbn9QYaKSEB1uf1BhopIQJqZmZmZMUpAtz/IUNn5SEDPikYCvjFKQLc/yFDZ+UhAmpmZmZkxSkCDEaxIELFIQAqQe82FqEhAFiD3mgsxS0DzVIfcDDpJQDf2TkHN4kpA&quot;},&quot;lon&quot;:{&quot;dtype&quot;:&quot;f8&quot;,&quot;bdata&quot;:&quot;PQrXo3BxX8A9CtejcHFfwCEiIiIipl/Ai0YCvnlRX8BMXW5/kKVfwItGAr55UV/AISIiIiKmX8BwP/NMwqJfwJjgwTxRO1/AUUZvy1p9X8AWIPeai39fwEZLWkDKf1/A&quot;},&quot;marker&quot;:{&quot;color&quot;:{&quot;dtype&quot;:&quot;f8&quot;,&quot;bdata&quot;:&quot;ZmZmZmZmLEBmZmZmZmYsQDMzMzMzMzNAmpmZmZmZNEBmZmZmZuYyQJqZmZmZmTRAMzMzMzMzM0BmZmZmZmYuQM3MzMzMTDFAmpmZmZkZMkDNzMzMzMwnQGZmZmZmZjFA&quot;},&quot;colorbar&quot;:{&quot;len&quot;:0.7,&quot;outlinewidth&quot;:0,&quot;thickness&quot;:20,&quot;tickfont&quot;:{&quot;size&quot;:12},&quot;title&quot;:{&quot;text&quot;:&quot;TEMP&quot;},&quot;x&quot;:1.02,&quot;y&quot;:0.5},&quot;opacity&quot;:0.7,&quot;size&quot;:17},&quot;mode&quot;:&quot;markers&quot;,&quot;type&quot;:&quot;scattermap&quot;}],&quot;layout&quot;:{&quot;template&quot;:{&quot;data&quot;:{&quot;histogram2dcontour&quot;:[{&quot;type&quot;:&quot;histogram2dcontour&quot;,&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;},&quot;colorscale&quot;:[[0.0,&quot;#0d0887&quot;],[0.1111111111111111,&quot;#46039f&quot;],[0.2222222222222222,&quot;#7201a8&quot;],[0.3333333333333333,&quot;#9c179e&quot;],[0.4444444444444444,&quot;#bd3786&quot;],[0.5555555555555556,&quot;#d8576b&quot;],[0.6666666666666666,&quot;#ed7953&quot;],[0.7777777777777778,&quot;#fb9f3a&quot;],[0.8888888888888888,&quot;#fdca26&quot;],[1.0,&quot;#f0f921&quot;]]}],&quot;choropleth&quot;:[{&quot;type&quot;:&quot;choropleth&quot;,&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}],&quot;histogram2d&quot;:[{&quot;type&quot;:&quot;histogram2d&quot;,&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;},&quot;colorscale&quot;:[[0.0,&quot;#0d0887&quot;],[0.1111111111111111,&quot;#46039f&quot;],[0.2222222222222222,&quot;#7201a8&quot;],[0.3333333333333333,&quot;#9c179e&quot;],[0.4444444444444444,&quot;#bd3786&quot;],[0.5555555555555556,&quot;#d8576b&quot;],[0.6666666666666666,&quot;#ed7953&quot;],[0.7777777777777778,&quot;#fb9f3a&quot;],[0.8888888888888888,&quot;#fdca26&quot;],[1.0,&quot;#f0f921&quot;]]}],&quot;heatmap&quot;:[{&quot;type&quot;:&quot;heatmap&quot;,&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;},&quot;colorscale&quot;:[[0.0,&quot;#0d0887&quot;],[0.1111111111111111,&quot;#46039f&quot;],[0.2222222222222222,&quot;#7201a8&quot;],[0.3333333333333333,&quot;#9c179e&quot;],[0.4444444444444444,&quot;#bd3786&quot;],[0.5555555555555556,&quot;#d8576b&quot;],[0.6666666666666666,&quot;#ed7953&quot;],[0.7777777777777778,&quot;#fb9f3a&quot;],[0.8888888888888888,&quot;#fdca26&quot;],[1.0,&quot;#f0f921&quot;]]}],&quot;contourcarpet&quot;:[{&quot;type&quot;:&quot;contourcarpet&quot;,&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}],&quot;contour&quot;:[{&quot;type&quot;:&quot;contour&quot;,&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;},&quot;colorscale&quot;:[[0.0,&quot;#0d0887&quot;],[0.1111111111111111,&quot;#46039f&quot;],[0.2222222222222222,&quot;#7201a8&quot;],[0.3333333333333333,&quot;#9c179e&quot;],[0.4444444444444444,&quot;#bd3786&quot;],[0.5555555555555556,&quot;#d8576b&quot;],[0.6666666666666666,&quot;#ed7953&quot;],[0.7777777777777778,&quot;#fb9f3a&quot;],[0.8888888888888888,&quot;#fdca26&quot;],[1.0,&quot;#f0f921&quot;]]}],&quot;surface&quot;:[{&quot;type&quot;:&quot;surface&quot;,&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;},&quot;colorscale&quot;:[[0.0,&quot;#0d0887&quot;],[0.1111111111111111,&quot;#46039f&quot;],[0.2222222222222222,&quot;#7201a8&quot;],[0.3333333333333333,&quot;#9c179e&quot;],[0.4444444444444444,&quot;#bd3786&quot;],[0.5555555555555556,&quot;#d8576b&quot;],[0.6666666666666666,&quot;#ed7953&quot;],[0.7777777777777778,&quot;#fb9f3a&quot;],[0.8888888888888888,&quot;#fdca26&quot;],[1.0,&quot;#f0f921&quot;]]}],&quot;mesh3d&quot;:[{&quot;type&quot;:&quot;mesh3d&quot;,&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}],&quot;scatter&quot;:[{&quot;fillpattern&quot;:{&quot;fillmode&quot;:&quot;overlay&quot;,&quot;size&quot;:10,&quot;solidity&quot;:0.2},&quot;type&quot;:&quot;scatter&quot;}],&quot;parcoords&quot;:[{&quot;type&quot;:&quot;parcoords&quot;,&quot;line&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;scatterpolargl&quot;:[{&quot;type&quot;:&quot;scatterpolargl&quot;,&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;bar&quot;:[{&quot;error_x&quot;:{&quot;color&quot;:&quot;#2a3f5f&quot;},&quot;error_y&quot;:{&quot;color&quot;:&quot;#2a3f5f&quot;},&quot;marker&quot;:{&quot;line&quot;:{&quot;color&quot;:&quot;#E5ECF6&quot;,&quot;width&quot;:0.5},&quot;pattern&quot;:{&quot;fillmode&quot;:&quot;overlay&quot;,&quot;size&quot;:10,&quot;solidity&quot;:0.2}},&quot;type&quot;:&quot;bar&quot;}],&quot;scattergeo&quot;:[{&quot;type&quot;:&quot;scattergeo&quot;,&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;scatterpolar&quot;:[{&quot;type&quot;:&quot;scatterpolar&quot;,&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;histogram&quot;:[{&quot;marker&quot;:{&quot;pattern&quot;:{&quot;fillmode&quot;:&quot;overlay&quot;,&quot;size&quot;:10,&quot;solidity&quot;:0.2}},&quot;type&quot;:&quot;histogram&quot;}],&quot;scattergl&quot;:[{&quot;type&quot;:&quot;scattergl&quot;,&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;scatter3d&quot;:[{&quot;type&quot;:&quot;scatter3d&quot;,&quot;line&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}},&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;scattermap&quot;:[{&quot;type&quot;:&quot;scattermap&quot;,&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;scattermapbox&quot;:[{&quot;type&quot;:&quot;scattermapbox&quot;,&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;scatterternary&quot;:[{&quot;type&quot;:&quot;scatterternary&quot;,&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;scattercarpet&quot;:[{&quot;type&quot;:&quot;scattercarpet&quot;,&quot;marker&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}}}],&quot;carpet&quot;:[{&quot;aaxis&quot;:{&quot;endlinecolor&quot;:&quot;#2a3f5f&quot;,&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;minorgridcolor&quot;:&quot;white&quot;,&quot;startlinecolor&quot;:&quot;#2a3f5f&quot;},&quot;baxis&quot;:{&quot;endlinecolor&quot;:&quot;#2a3f5f&quot;,&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;minorgridcolor&quot;:&quot;white&quot;,&quot;startlinecolor&quot;:&quot;#2a3f5f&quot;},&quot;type&quot;:&quot;carpet&quot;}],&quot;table&quot;:[{&quot;cells&quot;:{&quot;fill&quot;:{&quot;color&quot;:&quot;#EBF0F8&quot;},&quot;line&quot;:{&quot;color&quot;:&quot;white&quot;}},&quot;header&quot;:{&quot;fill&quot;:{&quot;color&quot;:&quot;#C8D4E3&quot;},&quot;line&quot;:{&quot;color&quot;:&quot;white&quot;}},&quot;type&quot;:&quot;table&quot;}],&quot;barpolar&quot;:[{&quot;marker&quot;:{&quot;line&quot;:{&quot;color&quot;:&quot;#E5ECF6&quot;,&quot;width&quot;:0.5},&quot;pattern&quot;:{&quot;fillmode&quot;:&quot;overlay&quot;,&quot;size&quot;:10,&quot;solidity&quot;:0.2}},&quot;type&quot;:&quot;barpolar&quot;}],&quot;pie&quot;:[{&quot;automargin&quot;:true,&quot;type&quot;:&quot;pie&quot;}]},&quot;layout&quot;:{&quot;autotypenumbers&quot;:&quot;strict&quot;,&quot;colorway&quot;:[&quot;#636efa&quot;,&quot;#EF553B&quot;,&quot;#00cc96&quot;,&quot;#ab63fa&quot;,&quot;#FFA15A&quot;,&quot;#19d3f3&quot;,&quot;#FF6692&quot;,&quot;#B6E880&quot;,&quot;#FF97FF&quot;,&quot;#FECB52&quot;],&quot;font&quot;:{&quot;color&quot;:&quot;#2a3f5f&quot;},&quot;hovermode&quot;:&quot;closest&quot;,&quot;hoverlabel&quot;:{&quot;align&quot;:&quot;left&quot;},&quot;paper_bgcolor&quot;:&quot;white&quot;,&quot;plot_bgcolor&quot;:&quot;#E5ECF6&quot;,&quot;polar&quot;:{&quot;bgcolor&quot;:&quot;#E5ECF6&quot;,&quot;angularaxis&quot;:{&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;ticks&quot;:&quot;&quot;},&quot;radialaxis&quot;:{&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;ticks&quot;:&quot;&quot;}},&quot;ternary&quot;:{&quot;bgcolor&quot;:&quot;#E5ECF6&quot;,&quot;aaxis&quot;:{&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;ticks&quot;:&quot;&quot;},&quot;baxis&quot;:{&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;ticks&quot;:&quot;&quot;},&quot;caxis&quot;:{&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;ticks&quot;:&quot;&quot;}},&quot;coloraxis&quot;:{&quot;colorbar&quot;:{&quot;outlinewidth&quot;:0,&quot;ticks&quot;:&quot;&quot;}},&quot;colorscale&quot;:{&quot;sequential&quot;:[[0.0,&quot;#0d0887&quot;],[0.1111111111111111,&quot;#46039f&quot;],[0.2222222222222222,&quot;#7201a8&quot;],[0.3333333333333333,&quot;#9c179e&quot;],[0.4444444444444444,&quot;#bd3786&quot;],[0.5555555555555556,&quot;#d8576b&quot;],[0.6666666666666666,&quot;#ed7953&quot;],[0.7777777777777778,&quot;#fb9f3a&quot;],[0.8888888888888888,&quot;#fdca26&quot;],[1.0,&quot;#f0f921&quot;]],&quot;sequentialminus&quot;:[[0.0,&quot;#0d0887&quot;],[0.1111111111111111,&quot;#46039f&quot;],[0.2222222222222222,&quot;#7201a8&quot;],[0.3333333333333333,&quot;#9c179e&quot;],[0.4444444444444444,&quot;#bd3786&quot;],[0.5555555555555556,&quot;#d8576b&quot;],[0.6666666666666666,&quot;#ed7953&quot;],[0.7777777777777778,&quot;#fb9f3a&quot;],[0.8888888888888888,&quot;#fdca26&quot;],[1.0,&quot;#f0f921&quot;]],&quot;diverging&quot;:[[0,&quot;#8e0152&quot;],[0.1,&quot;#c51b7d&quot;],[0.2,&quot;#de77ae&quot;],[0.3,&quot;#f1b6da&quot;],[0.4,&quot;#fde0ef&quot;],[0.5,&quot;#f7f7f7&quot;],[0.6,&quot;#e6f5d0&quot;],[0.7,&quot;#b8e186&quot;],[0.8,&quot;#7fbc41&quot;],[0.9,&quot;#4d9221&quot;],[1,&quot;#276419&quot;]]},&quot;xaxis&quot;:{&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;ticks&quot;:&quot;&quot;,&quot;title&quot;:{&quot;standoff&quot;:15},&quot;zerolinecolor&quot;:&quot;white&quot;,&quot;automargin&quot;:true,&quot;zerolinewidth&quot;:2},&quot;yaxis&quot;:{&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;ticks&quot;:&quot;&quot;,&quot;title&quot;:{&quot;standoff&quot;:15},&quot;zerolinecolor&quot;:&quot;white&quot;,&quot;automargin&quot;:true,&quot;zerolinewidth&quot;:2},&quot;scene&quot;:{&quot;xaxis&quot;:{&quot;backgroundcolor&quot;:&quot;#E5ECF6&quot;,&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;showbackground&quot;:true,&quot;ticks&quot;:&quot;&quot;,&quot;zerolinecolor&quot;:&quot;white&quot;,&quot;gridwidth&quot;:2},&quot;yaxis&quot;:{&quot;backgroundcolor&quot;:&quot;#E5ECF6&quot;,&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;showbackground&quot;:true,&quot;ticks&quot;:&quot;&quot;,&quot;zerolinecolor&quot;:&quot;white&quot;,&quot;gridwidth&quot;:2},&quot;zaxis&quot;:{&quot;backgroundcolor&quot;:&quot;#E5ECF6&quot;,&quot;gridcolor&quot;:&quot;white&quot;,&quot;linecolor&quot;:&quot;white&quot;,&quot;showbackground&quot;:true,&quot;ticks&quot;:&quot;&quot;,&quot;zerolinecolor&quot;:&quot;white&quot;,&quot;gridwidth&quot;:2}},&quot;shapedefaults&quot;:{&quot;line&quot;:{&quot;color&quot;:&quot;#2a3f5f&quot;}},&quot;annotationdefaults&quot;:{&quot;arrowcolor&quot;:&quot;#2a3f5f&quot;,&quot;arrowhead&quot;:0,&quot;arrowwidth&quot;:1},&quot;geo&quot;:{&quot;bgcolor&quot;:&quot;white&quot;,&quot;landcolor&quot;:&quot;#E5ECF6&quot;,&quot;subunitcolor&quot;:&quot;white&quot;,&quot;showland&quot;:true,&quot;showlakes&quot;:true,&quot;lakecolor&quot;:&quot;white&quot;},&quot;title&quot;:{&quot;x&quot;:0.05},&quot;mapbox&quot;:{&quot;style&quot;:&quot;light&quot;}}},&quot;title&quot;:{&quot;text&quot;:&quot;ECCC stations observation for TEMP&quot;},&quot;map&quot;:{&quot;center&quot;:{&quot;lat&quot;:55,&quot;lon&quot;:-125},&quot;bearing&quot;:0,&quot;pitch&quot;:0,&quot;zoom&quot;:2,&quot;style&quot;:&quot;light&quot;},&quot;height&quot;:600,&quot;width&quot;:500,&quot;showlegend&quot;:false,&quot;dragmode&quot;:&quot;zoom&quot;}}' data-config='{}'></marimo-plotly>"
+        }
+      ]
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "70973bdf351d80d93b52526bcd990791",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"pre-processing-brainstorming\">Pre-processing brainstorming</h2>\n<ul>\n<li>Exclude outliers (double than 90th percentile)</li>\n<li>Exclude missing values, but only for that field (exceot for wind: requires 2 non-missing values)</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}
