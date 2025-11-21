@@ -1,6 +1,6 @@
 import argparse
 import pandas as pd 
-from data_constants import OBS_DATA_DIR, PRED_RES_DIR
+from data_constants import OBS_DATA_DIR, PRED_DATA_DIR
 
 if __name__ == "__main__":
     '''

@@ -43,7 +43,7 @@ def _(file_dir, os, pd):
 @app.cell
 def _(df_raw):
     df = df_raw.dropna(how='any',axis=0) 
-    df = df[df.VISIBILITY > 0.01]
+    df = df[(df.VISIBILITY > 0.01) & (df.PRECIP_AMOUNT < 100)]
     df
     return (df,)
 
@@ -220,6 +220,14 @@ def _(df):
 
 
 @app.cell
+def _(df, plt):
+    plt.scatter(df['target_y'], df['VISIBILITY'])
+    plt.xlabel("Visibility")
+    plt.ylabel("Target")
+    return
+
+
+@app.cell
 def _(df):
     print(df.columns)
     return
@@ -262,7 +270,7 @@ def _(df, plt):
 
 @app.cell
 def _(df):
-    df['target_y'].hist(bins=100)
+    df['PRECIP_AMOUNT'].hist(bins=100)
     return
 
 
