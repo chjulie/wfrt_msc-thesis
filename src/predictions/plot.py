@@ -46,7 +46,6 @@ if __name__ == "__main__":
 
     print("\nLongitudes: ")
     print(f" lon: {longitudes.shape}")
-    print(longitudes)
 
     # print("\nFields: ")
     # for k,v in fields.items():
@@ -62,17 +61,6 @@ if __name__ == "__main__":
 
     contour=ax.tricontourf(triangulation, fields[DISP_VAR], levels=20, cmap="RdBu") # transform=ccrs.PlateCarree()
     cbar = fig.colorbar(contour, ax=ax, orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
-
-    minx, maxx = triangulation.x.min(), triangulation.x.max()
-    miny, maxy = triangulation.y.min(), triangulation.y.max()
-
-    size = max(maxx - minx, maxy - miny)
-    centerx = 0.5 * (minx + maxx)
-    centery = 0.5 * (miny + maxy)
-
-    ax.set_extent([centerx - size/2, centerx + size/2,
-                centery - size/2, centery + size/2],
-                crs=ccrs.PlateCarree())
 
     gl = ax.gridlines(
         draw_labels=True,
