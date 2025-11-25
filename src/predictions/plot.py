@@ -46,7 +46,6 @@ if __name__ == "__main__":
 
     print("\nLongitudes: ")
     print(f" lon: {longitudes.shape}")
-    print(longitudes)
 
     # print("\nFields: ")
     # for k,v in fields.items():
@@ -63,16 +62,31 @@ if __name__ == "__main__":
     contour=ax.tricontourf(triangulation, fields[DISP_VAR], levels=20, cmap="RdBu") # transform=ccrs.PlateCarree()
     cbar = fig.colorbar(contour, ax=ax, orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
 
-    minx, maxx = triangulation.x.min(), triangulation.x.max()
-    miny, maxy = triangulation.y.min(), triangulation.y.max()
+    gl = ax.gridlines(
+        draw_labels=True,
+        linewidth=0.5,
+        color='gray',
+        alpha=0.5,
+        linestyle='--'
+    )
+    # remove labels on top and right
+    # gl.top_labels = False
+    # gl.right_labels = False
 
-    size = max(maxx - minx, maxy - miny)
-    centerx = 0.5 * (minx + maxx)
-    centery = 0.5 * (miny + maxy)
+    fig.suptitle(f"{DISP_VAR} at {date.strftime(format='%Y%m%d_%H:%M:%S')}")
+    plt.savefig(f"{PRED_RES_DIR}/{date.strftime(format='%Y%m%d')}_{EXPERIENCE}_{domain}_{DISP_VAR}")
 
-    ax.set_extent([centerx - size/2, centerx + size/2,
-                centery - size/2, centery + size/2],
-                crs=ccrs.PlateCarree())
+    ###
+    fig, ax = plt.subplots(figsize=(6,6), subplot_kw={"projection": ccrs.PlateCarree()})
+    ax.coastlines()
+    ax.add_feature(cfeature.BORDERS, linestyle=":")
+
+    triangulation = tri.Triangulation(longitudes, latitudes)
+
+    contour=ax.tricontourf(triangulation, fields[DISP_VAR], levels=20, cmap="RdBu") # transform=ccrs.PlateCarree()
+    cbar = fig.colorbar(contour, ax=ax, orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
+    ax.triplot(triangulation, color="black", linewidth=0.3, alpha=0.5,
+           transform=ccrs.PlateCarree())
 
     gl = ax.gridlines(
         draw_labels=True,
@@ -81,12 +95,43 @@ if __name__ == "__main__":
         alpha=0.5,
         linestyle='--'
     )
-
-    # Optional: remove labels on top and right
+    # remove labels on top and right
     # gl.top_labels = False
     # gl.right_labels = False
 
-    fig.suptitle(f"{DISP_VAR} at {date.strftime(format='%Y%m%d_%H:%M:%S')}")
-    plt.savefig(f"{PRED_RES_DIR}/{date.strftime(format='%Y%m%d')}_{EXPERIENCE}_{domain}_{DISP_VAR}")
+    fig.suptitle(f"{DISP_VAR} at {date.strftime(format='%Y%m%d_%H:%M:%S')} and triangulation")
+    plt.savefig(f"{PRED_RES_DIR}/{date.strftime(format='%Y%m%d')}_{EXPERIENCE}_{domain}_triangulation_{DISP_VAR}", dpi=750)
+
+    ### 
+    fig, ax = plt.subplots(figsize=(6,6), subplot_kw={"projection": ccrs.PlateCarree()})
+    ax.coastlines()
+    ax.add_feature(cfeature.BORDERS, linestyle=":")
+
+    triangulation = tri.Triangulation(longitudes, latitudes)
+
+    contour=ax.tricontourf(triangulation, fields[DISP_VAR], levels=20, cmap="RdBu") # transform=ccrs.PlateCarree()
+    cbar = fig.colorbar(contour, ax=ax, orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
+    ax.scatter(
+        longitudes,
+        latitudes,
+        s=0.8,
+        color="black",
+        transform=ccrs.PlateCarree(),
+        zorder=10
+    )
+
+    gl = ax.gridlines(
+        draw_labels=True,
+        linewidth=0.5,
+        color='gray',
+        alpha=0.5,
+        linestyle='--'
+    )
+    # remove labels on top and right
+    # gl.top_labels = False
+    # gl.right_labels = False
+
+    fig.suptitle(f"{DISP_VAR} at {date.strftime(format='%Y%m%d_%H:%M:%S')} and data points")
+    plt.savefig(f"{PRED_RES_DIR}/{date.strftime(format='%Y%m%d')}_{EXPERIENCE}_{domain}_points_{DISP_VAR}", dpi=750)
 
     print(" > Program finished successfully !")
