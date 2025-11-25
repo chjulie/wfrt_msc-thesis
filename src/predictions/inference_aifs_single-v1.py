@@ -69,7 +69,8 @@ SOIL_LEVELS = [1,2]
 def get_open_data(param, input_date, levelist=[]):
     fields = defaultdict(list)
     # Get data at time t and t-1:
-    for date in [input_date - datetime.timedelta(hours=6), input_date]:
+    for date in [input_date - datetime.timedelta(hours=12), - datetime.timedelta(hours=6)]:
+        print("predictor date: ", date)
         data = ekd.from_source("ecmwf-open-data", date=date, param=param, levelist=levelist) # <class 'earthkit.data.readers.grib.file.GRIBReader'>
         for f in data:  # <class 'earthkit.data.readers.grib.codes.GribField'>
             assert f.to_numpy().shape == (721,1440)
@@ -98,15 +99,15 @@ def save_state(state, path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process WRFOUT data files.")
     parser.add_argument(
-        "--date", type=str, required=True, help="Date in YYYY-mm-dd format. Must be < 1 month old."
+        "--datetime", type=str, required=True, help="Date and time in YYYY-mm-ddTHH:00:00 format. Must be < 1 month old. Supported times are 00, 06, 12, 18."
     )
     # parser.add_argument(
     #     "--field", type=str, required=True, help="'temp'"
     # )
     args = parser.parse_args()
 
-    date = datetime.datetime.strptime(args.date + 'T06:00:00', '%Y-%m-%dT%H:%M:%S') # time should be 06,12,18 or 00.
-    print(" ** IDATE: ", type(date))
+    date = datetime.datetime.strptime(args.date, '%Y-%m-%dT%H:%M:%S') # time should be 06,12,18 or 00. 
+    print(" * INPUT DATE: ", type(date))
     # tdate = OpendataClient().latest()
     # print(" ** DATE: ", type(tdate))
 
@@ -161,6 +162,7 @@ if __name__ == "__main__":
     # Run the forecast
     for state in runner.run(input_state=input_state, lead_time=12):
         print(state.keys())
+        print(" * FORECASTED DATE: ", state['date'])
         print_state(state)
 
     ## Plot generation
@@ -190,8 +192,8 @@ if __name__ == "__main__":
 
     ## Save predicted domain_state to .pkl file
     state["longitudes"] = fixed_longitudes
-    save_state(domain_state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%d')}_regional_state.pkl")
-    save_state(state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%d')}_global_state.pkl")
+    save_state(domain_state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%dT%H:%M:%S')}_regional_state.pkl")
+    save_state(state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%dT%H:%M:%S')}_global_state.pkl")
 
     print(" > Program finished successfully!")
 

@@ -17,7 +17,6 @@ def get_mars_data(param, date_str):
         "target": "output",
         })
     print(data)
-    
 
 
 if __name__ == "__main__":
