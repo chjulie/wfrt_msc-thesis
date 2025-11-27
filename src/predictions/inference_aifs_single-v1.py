@@ -172,38 +172,6 @@ if __name__ == "__main__":
     fixed_longitudes = fix(longitudes)
     values = state["fields"][DISP_VAR]
 
-    # print(' -- values --')
-    # print(' - type: ', type(values))
-    # print(' - shape: ', values.shape)
-    # print('\n')
-
-    # print(' -- longitudes --')
-    # print('- type: ', type(longitudes))
-    # print('- shape: ', longitudes.shape)
-    # print('- len: ', len(longitudes))
-    # print('- [0]: ', longitudes[0])
-    # print('- [-1]: ', longitudes[-1])
-    # print('- res: ', longitudes[1] - longitudes[0])
-    # print('\n')
-
-    # print(' -- fixed longitudes --')
-    # print('- type: ', type(fixed_longitudes))
-    # print('- shape: ', fixed_longitudes.shape)
-    # print('- len: ', len(fixed_longitudes))
-    # print('- [0]: ', fixed_longitudes[0])
-    # print('- [-1]: ', fixed_longitudes[-1])
-    # print('- res: ', fixed_longitudes[1] - fixed_longitudes[0])
-    # print('\n')
-
-    # print(' -- latitudes --')
-    # print('- type: ', type(latitudes))
-    # print('- shape: ', latitudes.shape)
-    # print('- len: ', len(latitudes))
-    # print('- [0]: ', latitudes[0])
-    # print('- [-1]: ', latitudes[-1])
-    # print('- res: ', latitudes[1] - latitudes[0])
-    # print('\n')
-
     domain_mask = ((fixed_longitudes >= DOMAIN_MINX) & (fixed_longitudes <= DOMAIN_MAXX) &
         (latitudes >= DOMAIN_MINY) & (latitudes <= DOMAIN_MAXY))
     domain_lon = fixed_longitudes[domain_mask]
@@ -226,47 +194,6 @@ if __name__ == "__main__":
     state["longitudes"] = fixed_longitudes
     save_state(domain_state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%dT%H:%M:%S')}_regional_state.pkl")
     save_state(state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%dT%H:%M:%S')}_global_state.pkl")
-
-    # print(' -- domain longitudes --')
-    # print('- type: ', type(domain_lon))
-    # print('- shape: ', domain_lon.shape)
-    # print('- len: ', len(domain_lon))
-    # print('- [0]: ', domain_lon[0])
-    # print('- [-1]: ', domain_lon[-1])
-    # print('- res: ', domain_lon[1] - domain_lon[0])
-    # print('\n')
-
-    # print(' -- domain latitudes --')
-    # print('- type: ', type(domain_lat))
-    # print('- shape: ', domain_lat.shape)
-    # print('- len: ', len(domain_lat))
-    # print('- [0]: ', domain_lat[0])
-    # print('- [-1]: ', domain_lat[-1])
-    # print('- res: ', domain_lat[1] - domain_lat[0])
-    # print('\n')
-
-    # fig, ax = plt.subplots(1,2,figsize=(11, 6), subplot_kw={"projection": ccrs.PlateCarree()})
-
-    # # global domain
-    # ax[0].coastlines()
-    # ax[0].add_feature(cfeature.BORDERS, linestyle=":")
-
-    # triangulation = tri.Triangulation(fix(longitudes), latitudes)
-
-    # contour=ax[0].tricontourf(triangulation, values, levels=20, transform=ccrs.PlateCarree(), cmap="RdBu")
-    # cbar = fig.colorbar(contour, ax=ax[0], orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
-
-    # # regional domain
-    # ax[1].coastlines()
-    # ax[1].add_feature(cfeature.BORDERS, linestyle=":")
-
-    # domain_triangulation = tri.Triangulation(domain_lon, domain_lat)
-
-    # contour=ax[1].tricontourf(domain_triangulation, domain_values, levels=20, transform=ccrs.PlateCarree(), cmap="RdBu")
-    # cbar = fig.colorbar(contour, ax=ax[1], orientation="vertical", shrink=0.7, label=f"{DISP_VAR}")
-
-    # fig.suptitle("Temperature at {}".format(state["date"]))
-    # plt.savefig(os.path.join(PRED_RES_DIR, f"{EXPERIENCE}_{DISP_VAR}_{date.strftime(format='%Y%m%d_%H:%M:%S')}"), )
 
     print(" > Program finished successfully!")
 
