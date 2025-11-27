@@ -69,7 +69,7 @@ SOIL_LEVELS = [1,2]
 def get_open_data(param, input_date, levelist=[]):
     fields = defaultdict(list)
     # Get data at time t and t-1:
-    for date in [input_date - datetime.timedelta(hours=12), - datetime.timedelta(hours=6)]:
+    for date in [input_date - datetime.timedelta(hours=12), input_date - datetime.timedelta(hours=6)]:
         print("predictor date: ", date)
         data = ekd.from_source("ecmwf-open-data", date=date, param=param, levelist=levelist) # <class 'earthkit.data.readers.grib.file.GRIBReader'>
         for f in data:  # <class 'earthkit.data.readers.grib.codes.GribField'>
@@ -106,8 +106,8 @@ if __name__ == "__main__":
     # )
     args = parser.parse_args()
 
-    date = datetime.datetime.strptime(args.date, '%Y-%m-%dT%H:%M:%S') # time should be 06,12,18 or 00. 
-    print(" * INPUT DATE: ", type(date))
+    date = datetime.datetime.strptime(args.datetime, '%Y-%m-%dT%H:%M:%S') # time should be 06,12,18 or 00. 
+    print(" * INPUT DATE: ", date)
     # tdate = OpendataClient().latest()
     # print(" ** DATE: ", type(tdate))
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     print(" > data downloaded! ")
 
     # Create initial state
-    input_state = dict(date=date, fields=fields)
+    input_state = dict(date=date - datetime.timedelta(hours=6), fields=fields)
 
     ## Load the model and run the forecast
     checkpoint = {"huggingface":"ecmwf/aifs-single-1.0"}
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     runner.model = model
 
     # Run the forecast
-    for state in runner.run(input_state=input_state, lead_time=12):
+    for state in runner.run(input_state=input_state, lead_time=6):
         print(state.keys())
         print(" * FORECASTED DATE: ", state['date'])
         print_state(state)
@@ -192,8 +192,8 @@ if __name__ == "__main__":
 
     ## Save predicted domain_state to .pkl file
     state["longitudes"] = fixed_longitudes
-    save_state(domain_state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%dT%H:%M:%S')}_regional_state.pkl")
-    save_state(state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%dT%H:%M:%S')}_global_state.pkl")
+    save_state(domain_state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%dT%H')}_regional_state.pkl")
+    save_state(state, f"{PRED_DATA_DIR}/{date.strftime(format='%Y%m%dT%H')}_global_state.pkl")
 
     print(" > Program finished successfully!")
 
