@@ -35,6 +35,7 @@ if __name__ == "__main__":
     df = pd.read_csv(
         f"{ERROR_DATA_DIR}/{args.datetime[:10].replace('-','')}_station-interp.csv"
     )
+    print(df.head(5))
     s_longitudes = df.x.values  # 's' prefix indicates 'station observation'
     s_latitudes = df.y.values  # 's' prefix indicates 'station observation'
 
