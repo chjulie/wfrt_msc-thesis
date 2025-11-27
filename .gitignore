@@ -2,6 +2,7 @@
 .python-version
 */__pycache__/*
 */__marimo__/*
+__marimo__/
 */*.egg-info/*
 .DS_Store
 */.DS_Store

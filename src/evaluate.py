@@ -96,7 +96,7 @@ if __name__ == "__main__":
     Evaluates model prediction against observations
 
     """
-    metric_functions = {"rmse": lambda x, y: (x - y) ** 2}
+    metric_functions = {"rmse": lambda x, y: np.sqrt((x - y) ** 2)}
 
     parser = argparse.ArgumentParser(description="Process WRFOUT data files.")
     parser.add_argument(
@@ -130,8 +130,10 @@ if __name__ == "__main__":
             ).tz_localize("utc")
         },
     )
+    obs_df.TEMP = obs_df.TEMP.apply(lambda x: x + 273.15)
     obs_df = obs_df.rename(columns={"TEMP": "obs_2t"})
     print(" > read observations file")
+    print(obs_df.obs_2t)
 
     # Get station localisation.
     obs_df = obs_df[obs_df.UTC_DATE == p_date]
@@ -153,13 +155,13 @@ if __name__ == "__main__":
                 data=p_fields[field],
             )
             obs_df.loc[:, f"s_pred_{field}_{resampling}"] = np.squeeze(s_pred)
-            plot_interpolation(
-                src_coords=p_coords,
-                src_data=p_fields[field],
-                tgt_coords=s_coords,
-                tgt_pred=s_pred,
-                specs={"field": field, "resampling": resampling},
-            )
+            # plot_interpolation(
+            #     src_coords=p_coords,
+            #     src_data=p_fields[field],
+            #     tgt_coords=s_coords,
+            #     tgt_pred=s_pred,
+            #     specs={"field": field, "resampling": resampling},
+            # )
             for metric in METRICS:
                 print("  ", metric)
                 fun = metric_functions.get(metric)
@@ -168,7 +170,8 @@ if __name__ == "__main__":
                 )
 
     obs_df.to_csv(
-        f"{ERROR_DATA_DIR}/{args.datetime[:10].replace('-','')}_station-interp.csv"
+        f"{ERROR_DATA_DIR}/{args.datetime[:10].replace('-','')}_station-interp.csv",
+        index=False,
     )
 
     # for now:

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.7"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -28,15 +28,22 @@ def show_serie_stats(serie):
 
 @app.cell
 def _(OBS_DATA_DIR):
-    file_name = f"{OBS_DATA_DIR}/20250801_verif_eccc_obs.csv"
+    file_name = f"../../{OBS_DATA_DIR}/20251126_verif_eccc_obs.csv"
     return (file_name,)
 
 
 @app.cell
 def _(file_name, pd):
     df = pd.read_csv(file_name)
+    df.TEMP = df.TEMP.apply(lambda x: x + 273.15)
     df.head(5)
     return (df,)
+
+
+@app.cell
+def _(df):
+    print(df.dtypes)
+    return
 
 
 @app.cell
