@@ -1,7 +1,9 @@
 # directories
-OBS_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/eccc_data"
-PRED_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/prediction_data"
+# OBS_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/eccc_data"
+# PRED_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/prediction_data"
 ERROR_DATA_DIR = "data/error_data"
+OBS_DATA_DIR = "../../data/eccc_data"
+PRED_DATA_DIR = "../../data/prediction_data"
 
 PRED_RES_DIR = "../../reports/plots/prediction_plots"
 
