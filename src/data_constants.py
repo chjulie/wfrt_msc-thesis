@@ -1,6 +1,7 @@
 # directories
 # OBS_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/eccc_data"
 # PRED_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/prediction_data"
+ERROR_DATA_DIR = "data/error_data"
 OBS_DATA_DIR = "../../data/eccc_data"
 PRED_DATA_DIR = "../../data/prediction_data"
 
@@ -16,4 +17,3 @@ DOMAIN_MAXY = 66.57196045
 UNIVERSAL_FIELDS = "ID%2CSTN_ID%2CUTC_DATE%2C"
 VERIF_FIELDS = f"{UNIVERSAL_FIELDS}TEMP%2CPRECIP_AMOUNT%2CWIND_SPEED%2CWIND_DIRECTION"
 VISIBILITY_FIELDS = f"{UNIVERSAL_FIELDS}TEMP%2CDEW_POINT_TEMP%2CPRECIP_AMOUNT%2CRELATIVE_HUMIDITY%2CVISIBILITY"
-

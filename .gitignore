@@ -9,6 +9,7 @@
 # data
 */eccc_data/*
 */prediction_data/*
+*/error_data/*
 
 # slurm output files
 *.out
