@@ -8,6 +8,7 @@ __marimo__/
 */.DS_Store
 
 # data
+data/*
 */eccc_data/*
 */prediction_data/*
 */error_data/*
