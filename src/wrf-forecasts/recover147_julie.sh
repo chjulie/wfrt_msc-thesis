@@ -187,11 +187,13 @@ while IFS=, read -r next_tape next_file backup_file; do
                 run_cmd "/bin/touch ${backup_file}.BACKUP.OK"
             fi
             run_cmd "/bin/mt -f ${TAPE_DRV} status | grep number"
-	    # extract desired vars and copy to nextcloud
-	    #run_cmd "touch ${backup_file}/output_${file_id}.nc"
-	    #  run_cmd "cdo -L mergetime -apply,-selname,U10,V10,COSALPHA,SINALPHA,T2,RAINNC,RAINC [ ${backup_file}/wrfout_d02_*00 ] ${backup_file}/merged.nc"
-	    #run_cmd "cdo -L mergetime $(find ${backup_file} -maxdepth 1 -type f -name 'wrfout_d02_*' | grep -E '_(00|06|12|18):00:00$' | sort) ${backup_file}/output_${file_id}.nc" 
-	    #run_cmd "rclone copy ${backup_file}/output_${file_id}.nc wfrt-nextcloud-jcharlet:Documents/WRF-forecasts/${model_id}/ --progress" 
+            
+            # extract desired vars and copy to nextcloud
+            run_cmd "touch ${backup_file}/merged.nc"
+            run_cmd "cdo -L mergetime $(find ${backup_file} -maxdepth 1 -type f -name 'wrfout_d02_*' | grep -E '_(00|06|12|18):00:00$' | sort) ${backup_file}/merged.nc" 
+            run_cmd "python bin/process_julie.py --model ${model_id} --id ${file_id}"
+            run_cmd "rclone copy ${backup_file}/wrfout_d02_processed_${file_id}.nc wfrt-nextcloud-jcharlet:Documents/WRF-forecasts/${model_id}/ --progress" 
+            # run_cmd "cdo -L mergetime -apply,-selname,U10,V10,COSALPHA,SINALPHA,T2,RAINNC,RAINC [ ${backup_file}/wrfout_d02_*00 ] ${backup_file}/merged.nc"
         else
             log_msg "Skipping tape ${next_tape}, file ${next_file} (${backup_file}), already recovered"
         fi

@@ -13,6 +13,9 @@ data/*
 */prediction_data/*
 */error_data/*
 
+# plots
+reports/plots/*
+
 # slurm output files
 *.out
 
