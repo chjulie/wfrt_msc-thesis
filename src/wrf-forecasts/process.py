@@ -61,7 +61,9 @@ def calculate_total_rain(ds):
     RAINSH: ACCUMULATED SHALLOW CUMULUS PRECIPITATION
     """
 
-    tp_6h = ds.RAINNC.diff(dim="XTIME")  # 6h accumulation
+    tp_6h = ds.RAINNC.clip(min=0.0).diff(
+        dim="XTIME"
+    )  # 6h accumulation, clip very small negative values
     tp_6h = tp_6h.reindex(XTIME=ds.XTIME, fill_value=float("nan"))
 
     tp_6h.name = "tp_6h"
@@ -74,10 +76,10 @@ def calculate_total_rain(ds):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="process raw wrfout")
     parser.add_argument(
-        "--model", type="str", required=True, help="Model folder name, ex: WAC00WG-01"
+        "--model", type=str, required=True, help="Model folder name, ex: WAC00WG-01"
     )
     parser.add_argument(
-        "--id", type="str", required=True, help="Forecast inital dat, ex: 23040300"
+        "--id", type=str, required=True, help="Forecast inital dat, ex: 23040300"
     )
     args = parser.parse_args()
 
@@ -88,7 +90,7 @@ if __name__ == "__main__":
 
     # interpolate variables
     processed_variables = {}
-    air_pressure = ds_wrfout.air_pressure / 100.0
+    air_pressure = ds_wrfout.air_pressure / 100.0  # Pa to hPa
     grid = xgcm.Grid(ds_wrfout, periodic=False)
     pressure_level_variables = ["U", "V", "geopotential", "air_potential_temperature"]
 
@@ -119,12 +121,33 @@ if __name__ == "__main__":
             "geopotential": processed_variables["geopotential"],
             "u": processed_variables["U"],
             "v": processed_variables["V"],
+            "ff": mpcalc.wind_speed(processed_variables["U"], processed_variables["V"]),
             "t": air_temperature,
             "10u": ds_wrfout["U10"],
             "10v": ds_wrfout["U10"],
+            "10ff": mpcalc.wind_speed(ds_wrfout["U10"], ds_wrfout["V10"]),
             "2t": ds_wrfout["T2"],
             "msl": mean_sea_level_pressure,
             "tp": acc_precip_6h,
         }
     )
-    dataset.to_netcdf(f"{FOLDER_NAME}/wrfout_d02_processed_{args.id}.nc")
+
+    # Inform main attributes fields
+
+    dataset["t"].name = "t"
+    dataset["t"].attrs["units"] = "K"
+    dataset["t"].attrs["description"] = "Temperature"
+
+    dataset["ff"].name = "ff"
+    dataset["ff"].attrs["units"] = "m s-1"
+    dataset["ff"].attrs["description"] = "Wind speed"
+
+    dataset["10ff"].name = "ff"
+    dataset["10ff"].attrs["units"] = "m s-1"
+    dataset["10ff"].attrs["description"] = "10m wind speed"
+
+    dataset.attrs = raw_wrfout.attrs
+
+    # Save dataset
+
+    dataset.to_netcdf(f"{FOLDER_NAME}/wrfout_d02_processed_{args.id}.nc", "w")

@@ -1,3 +1,5 @@
+import numpy as np
+
 # directories
 # OBS_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/eccc_data"
 # PRED_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/prediction_data"
@@ -20,3 +22,6 @@ VERIF_FIELDS = f"{UNIVERSAL_FIELDS}TEMP%2CPRECIP_AMOUNT%2CWIND_SPEED%2CWIND_DIRE
 
 # TRAIN-TEST SPLIT
 TEST_YEAR = "2023"
+
+# SCORECARD
+P_LEVELS = np.array([50, 100, 250, 500, 850])
