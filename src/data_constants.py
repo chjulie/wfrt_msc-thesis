@@ -9,6 +9,7 @@ PRED_DATA_DIR = "data/prediction_data"
 
 PRED_PLOT_DIR = "reports/plots/prediction"
 GEOM_RES_DIR = "../../reports/plots/geometry"
+FIR_SCRATCH_WRF_DATA = "/scratch/juchar/wrf_data/"
 
 # DOMAIN BOUNDS (Climatex bounds)
 DOMAIN_MINX = -146.74888611
@@ -23,5 +24,7 @@ VERIF_FIELDS = f"{UNIVERSAL_FIELDS}TEMP%2CPRECIP_AMOUNT%2CWIND_SPEED%2CWIND_DIRE
 # TRAIN-TEST SPLIT
 TEST_YEAR = "2023"
 
-# SCORECARD
+# WRF FORECASTS
 P_LEVELS = np.array([50, 100, 250, 500, 850])
+MODEL_ID = 'WAC00WG-01'
+EVAL_LEAD_TIMES = ['6', '12'] #, '18', '24', '30', '36', '42', '48', '54', '60', '66', '72', '78', '84']

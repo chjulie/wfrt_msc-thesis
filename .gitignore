@@ -16,6 +16,9 @@ data/*
 # plots
 reports/plots/*
 
+# logs
+logs/*
+
 # slurm output files
 *.out
 
