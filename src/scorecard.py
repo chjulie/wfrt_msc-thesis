@@ -43,22 +43,33 @@ if __name__ == "__main__":
         start=args.start_date, end=args.end_date
     )  # should be at 00 everyday
 
+    scorecard_df = pd.DataFrame(
+        columns=["initial_date", "lead_time", "fields", "rmse_wf", "rmse_climatex"]
+    )
+
     for date in date_range:
         print(f"⚡️ date: {date}")
-        # 1.2 CLIMATEX pred for date (rclone download, open file)
-
-        # 2.1 WAC00WG-01 pred for date (rclone download, open file)
+        # 2.1 WAC00WG-01 pred for date
+        # rclone download for date
 
         for lead_time in EVAL_LEAD_TIMES:
             print(f"  lead time: {lead_time}")
 
-            # 1.1 CLIMATEX ground truth (rclone download, open file)
+            # 1.1 CLIMATEX ground truth
+            # open file select initial_date=date+lead_time, lead_time=0
+
+            # 1.2 CLIMATEX pred for date
+            # open file, select initial_date=date, lead_time=0
+
+            # 2.1 WAC00WG-01 pred for date
+            # open file, select XTIME=date+lead_time
+            # grid interpolation
 
             # 1.3 Evaluate CLIMATEX pred
 
             # 1.4 Evaluate WAC00WG-01 pred
 
-            # 3.1 Compute metrics diff
+            # 3.1 Performance difference and spatial average
 
     # 3.2 Average in time
 
