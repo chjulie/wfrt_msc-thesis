@@ -5,6 +5,7 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 
+from utils.resampling_utils import pyresample_resampling
 from data_constants import P_LEVELS, EVAL_LEAD_TIMES, MODEL_ID, FIR_SCRATCH_WRF_DATA
 
 SCORECARD_FIELDS = ["2t"]
@@ -42,20 +43,14 @@ def get_domain_coords(wrf_ds, climatex_ds):
 
     return clipped_src_coords, clipped_tgt_coords, src_mask, tgt_mask
 
-def pyresample_resampling(
-    src_coords: np.array,
-    tgt_coords: np.array,
-    data: np.array,
-):
-    src_grid = geometry.SwathDefinition(lons=src_coords[:, 0], lats=src_coords[:, 1])
-    tgt_grid = geometry.SwathDefinition(lons=tgt_coords[:, 0], lats=tgt_coords[:, 1])
-    resampled_data = kd_tree.resample_nearest(
-        source_geo_def=src_grid,
-        data=data,
-        target_geo_def=tgt_grid,
-        radius_of_influence=50000,
-    )
-    return resampled_data
+def rmse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
+
+    assert array1.shape == array2.shape, "Both arrays must have the same shape"
+    assert array1.ndim==1 and array2.ndim==1, "Both arrays must be one-dimesional"
+
+    rmse = np.sqrt(np.power(array1-array2, 2)).mean()   # spatial average
+
+    return rmse
 
 if __name__ == "__main__":
 

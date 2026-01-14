@@ -1,3 +1,4 @@
+import sys
 import xarray as xr
 import numpy as np
 import xwrf
@@ -5,9 +6,8 @@ import xgcm
 import metpy.calc as mpcalc
 from metpy.units import units
 
-from pyresample import geometry, bilinear, kd_tree
-from scipy.interpolate import RBFInterpolator
 from scipy.spatial import cKDTree
+from pyresample import geometry, bilinear, kd_tree
 
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
@@ -19,6 +19,21 @@ projection = ccrs.Stereographic(
     central_longitude=-90.0,        # STAND_LON
     true_scale_latitude=60.0        # Usually TRUELAT2 for polar stereo
 )
+
+def pyresample_resampling(
+    src_coords: np.array,
+    tgt_coords: np.array,
+    data: np.array,
+):
+    src_grid = geometry.SwathDefinition(lons=src_coords[:, 0], lats=src_coords[:, 1])
+    tgt_grid = geometry.SwathDefinition(lons=tgt_coords[:, 0], lats=tgt_coords[:, 1])
+    resampled_data = kd_tree.resample_nearest(
+        source_geo_def=src_grid,
+        data=data,
+        target_geo_def=tgt_grid,
+        radius_of_influence=50000,
+    )
+    return resampled_data
 
 def fix(lons):
     # Shift the longitudes from 0-360 to -180-180
@@ -36,35 +51,6 @@ def clip_coords(src_coords, tgt_coords, tolerance=0.03):
 
     return tgt_mask, src_mask
 
-def scipy_resampling(
-    resampling: str,
-    src_coords: np.array,
-    tgt_coords: np.array,
-    data: xr.DataArray | np.ndarray ,
-):
-    rbf_interpolator = RBFInterpolator(
-        y=src_coords,
-        d=data,
-        kernel=resampling,
-    )
-    resampled_data = rbf_interpolator(tgt_coords)
-
-    return resampled_data
-
-def pyresample_resampling(
-    src_coords: np.array,
-    tgt_coords: np.array,
-    data: np.array,
-):
-    src_grid = geometry.SwathDefinition(lons=src_coords[:, 0], lats=src_coords[:, 1])
-    tgt_grid = geometry.SwathDefinition(lons=tgt_coords[:, 0], lats=tgt_coords[:, 1])
-    resampled_data = kd_tree.resample_nearest(
-        source_geo_def=src_grid,
-        data=data,
-        target_geo_def=tgt_grid,
-        radius_of_influence=50000,
-    )
-    return resampled_data
 
 def rmse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
 
@@ -78,11 +64,11 @@ def rmse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
 if __name__ == "__main__":
 
     # Open datasets
-    print('Starting script')
+    print('Starting script', flush=True)
     wrf_ds = xr.open_dataset('data/wrf_data/wrfout_d02_processed_23040400.nc')
-    print('Opened wrf')
+    print('Opened wrf', flush=True)
     climatex_ds = xr.open_dataset('data/prediction_data/bris-lam-inference-20230101T12-20230102T12.nc')
-    print('Opened climatex')
+    print('Opened climatex', flush=True)
 
     src_coords = np.column_stack((wrf_ds.XLONG.values.flatten(), wrf_ds.XLAT.values.flatten())) # source coords is WAC00WG-01 XLONG/XLAT
     tgt_coords = np.column_stack((climatex_ds.longitude.values, climatex_ds.latitude.values))
@@ -95,52 +81,32 @@ if __name__ == "__main__":
     data_tgt = climatex_ds['2t'].sel(lead_time=0, initial_date='2023-01-01T12:00:00.000000000')[tgt_mask]
     data_src = wrf_ds['2t'].sel(XTIME='2023-04-04T06:00:00.000000000').values.flatten()[src_mask]
 
-    print(f" - src: {clipped_src_coords.shape}")    
-    print(f" - tgt: {clipped_tgt_coords.shape}")    # climatex
-    print(f" - data src: {data_src.shape}")
-    print(f" - data tgt: {data_tgt.values.shape}")
+    print(f" - src: {clipped_src_coords.shape}", flush=True)    
+    print(f" - tgt: {clipped_tgt_coords.shape}", flush=True)    # climatex
+    print(f" - data src: {data_src.shape}", flush=True)
+    print(f" - data tgt: {data_tgt.values.shape}", flush=True)
 
     # Perform interpolation
-    print('nearest-neighbor resampling: ')
+    print('nearest-neighbor resampling: ', flush=True)
     resampled_data_NN = pyresample_resampling(src_coords=clipped_src_coords, tgt_coords=clipped_tgt_coords, data=data_src)
-    print('linear resampling: ')
-    resampled_data_linear = scipy_resampling(resampling="linear", src_coords=clipped_src_coords, tgt_coords=clipped_tgt_coords, data=data_src)
-    print('Cubic resampling: ')
-    resampled_data_cubic = scipy_resampling(resampling="cubic", src_coords=clipped_src_coords, tgt_coords=clipped_tgt_coords, data=data_src)
-
-    # Plot results
-    # print('Plotting results ... ')
-    # fig, ax = plt.subplots(1,2,figsize=(15,10), subplot_kw={'projection': projection})
-    # ax = ax.ravel()
-
-    # # ORIGINAL CLIMATEX COORDS
-    # ax[0].scatter(x=clipped_src_coords[:,0], y=clipped_src_coords[:,1], c=data_src, transform=ccrs.PlateCarree())
-    # ax[0].set_title(f"Variable 2t - original CLIMATEX coordinates")
-
-    # # RESAMPLED NEAREST-NEIGHBORS
-    # ax[1].scatter(x=clipped_tgt_coords[:,0], y=clipped_tgt_coords[:,1], c=resampled_data_NN, transform=ccrs.PlateCarree())
-    # ax[1].set_title(f"Variable 2t - Nearest-neighbor resampling")
-
-    # plt.savefig('reports/plots/evaluation/NN_resampling_test.png', bbox_inches='tight', dpi=200)
-
-    # Compute rmse:
     
-
+    # Plot results
     print('Plotting results ... ')
-    fig, ax = plt.subplots(1,3,figsize=(20,10), subplot_kw={'projection': projection})
+    fig, ax = plt.subplots(1,2,figsize=(15,10), subplot_kw={'projection': projection})
     ax = ax.ravel()
 
     # ORIGINAL CLIMATEX COORDS
-    ax[0].scatter(x=src_coords[:,0], y=src_coords[:,1], c=data_src.values, transform=ccrs.PlateCarree())
+    ax[0].scatter(x=clipped_src_coords[:,0], y=clipped_src_coords[:,1], c=data_src, transform=ccrs.PlateCarree())
     ax[0].set_title(f"Variable 2t - original CLIMATEX coordinates")
 
-    # RESAMPLED LINEAR
-    ax[1].scatter(x=clipped_tgt_coords[:,0], y=clipped_tgt_coords[:,1], c=resampled_data_linear.values, transform=ccrs.PlateCarree())
-    ax[1].set_title(f"Variable 2t - linear resampling")
+    # RESAMPLED NEAREST-NEIGHBORS
+    ax[1].scatter(x=clipped_tgt_coords[:,0], y=clipped_tgt_coords[:,1], c=resampled_data_NN, transform=ccrs.PlateCarree())
+    ax[1].set_title(f"Variable 2t - Nearest-neighbor resampling")
 
-    # RESAMPLED CUBIC
-    ax[2].scatter(x=clipped_tgt_coords[:,0], y=clipped_tgt_coords[:,1], c=resampled_data_cubic.values, transform=ccrs.PlateCarree())
-    ax[2].set_title(f"Variable 2t - cubic resampling")
+    plt.savefig('reports/plots/evaluation/NN_resampling_test.png', bbox_inches='tight', dpi=200)
 
-    plt.savefig('reports/plots/evaluation/resampling_test.png', bbox_inches='tight', dpi=200)
-    print('Script finished succesfully !')
+    # Compute rmse:
+    rmse = rmse(resampled_data_NN, data_tgt)
+    print(' - rmse=', rmse)
+    
+    print('Script finished succesfully !', flush=True)
