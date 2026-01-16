@@ -6,14 +6,14 @@ import pandas as pd
 import numpy as np
 
 from utils.resampling_utils import pyresample_resampling
-from data_constants import P_LEVELS, EVAL_LEAD_TIMES, MODEL_ID, FIR_SCRATCH_WRF_DATA
+from data_constants import P_LEVELS, EVAL_LEAD_TIMES, MODEL_ID, FIR_SCRATCH
 
 SCORECARD_FIELDS = ["2t"]
 
 def rclone_copy(run_id: str):
 
     source = f"wfrt-nextcloud:Documents/WRF-forecasts/{MODEL_ID}/wrfout_d02_processed_{run_id}.nc"
-    destination = f"{FIR_SCRATCH_WRF_DATA}"
+    destination = f"{FIR_SCRATCH}/wrf_data"
     cmd = f"rclone copy '{source}' '{destination}' --progress"
     # print(' - rclone cmd: ', cmd)
     subprocess.run(cmd, shell=True, check=True)
@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
         # 2.1 Download file for given initial date
         # rclone_copy(run_id=run_id)
-        wrf_ds = xr.open_dataset(f"{FIR_SCRATCH_WRF_DATA}wrfout_d02_processed_{run_id}.nc")
+        wrf_ds = xr.open_dataset(f"{FIR_SCRATCH}/wrf_data/wrfout_d02_processed_{run_id}.nc")
 
         for lead_time in EVAL_LEAD_TIMES:
             print(f"  lead time: {lead_time}")
