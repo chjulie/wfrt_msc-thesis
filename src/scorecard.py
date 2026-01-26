@@ -10,6 +10,7 @@ from data_constants import P_LEVELS, EVAL_LEAD_TIMES, MODEL_ID, FIR_SCRATCH_WRF_
 
 SCORECARD_FIELDS = ["2t"]
 
+
 def rclone_copy(run_id: str):
 
     source = f"wfrt-nextcloud:Documents/WRF-forecasts/{MODEL_ID}/wrfout_d02_processed_{run_id}.nc"
@@ -18,10 +19,14 @@ def rclone_copy(run_id: str):
     # print(' - rclone cmd: ', cmd)
     subprocess.run(cmd, shell=True, check=True)
 
-xtime = lambda a, b : datetime.strftime(a + pd.Timedelta(hours=int(b)), format='%Y-%m-%dT%H:00:00.000000000')
+
+xtime = lambda a, b: datetime.strftime(
+    a + pd.Timedelta(hours=int(b)), format="%Y-%m-%dT%H:00:00.000000000"
+)
+
 
 def clip_coords(src_coords, tgt_coords, tolerance=0.03):
-    
+
     tree_src = cKDTree(src_coords)
     indices = tree_src.query_ball_point(tgt_coords, r=tolerance)
     tgt_mask = np.array([len(idx) > 0 for idx in indices])
@@ -32,25 +37,32 @@ def clip_coords(src_coords, tgt_coords, tolerance=0.03):
 
     return tgt_mask, src_mask
 
+
 def get_domain_coords(wrf_ds, climatex_ds):
 
-    src_coords = np.column_stack((wrf_ds.XLONG.values.flatten(), wrf_ds.XLAT.values.flatten()))
-    tgt_coords = np.column_stack((climatex_ds.longitude.values, climatex_ds.latitude.values))
-    
+    src_coords = np.column_stack(
+        (wrf_ds.XLONG.values.flatten(), wrf_ds.XLAT.values.flatten())
+    )
+    tgt_coords = np.column_stack(
+        (climatex_ds.longitude.values, climatex_ds.latitude.values)
+    )
+
     tgt_mask, src_mask = clip_coords(src_coords, tgt_coords)
     clipped_src_coords = src_coords[src_mask]
     clipped_tgt_coords = tgt_coords[tgt_mask]
 
     return clipped_src_coords, clipped_tgt_coords, src_mask, tgt_mask
 
+
 def rmse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
 
     assert array1.shape == array2.shape, "Both arrays must have the same shape"
-    assert array1.ndim==1 and array2.ndim==1, "Both arrays must be one-dimesional"
+    assert array1.ndim == 1 and array2.ndim == 1, "Both arrays must be one-dimesional"
 
-    rmse = np.sqrt(np.power(array1-array2, 2)).mean()   # spatial average
+    rmse = np.sqrt(np.power(array1 - array2, 2)).mean()  # spatial average
 
     return rmse
+
 
 if __name__ == "__main__":
 
@@ -89,41 +101,49 @@ if __name__ == "__main__":
         start=args.start_date, end=args.end_date
     )  # should be at 00 everyday
 
-    print(' - daterange: ', date_range)
+    print(" - daterange: ", date_range)
 
     scorecard_df = pd.DataFrame(
         columns=["initial_date", "lead_time", "field", "model", "rmse"]
     )
 
-    counter=0
-    climatex_ds = xr.open_dataset('climatex_data_path')
+    counter = 0
+    climatex_ds = xr.open_dataset("climatex_data_path")
 
     for initial_date in date_range:
         print(f"⚡️ date: {initial_date}")
-        run_id = initial_date.strftime('%y%m%d%H')
+        run_id = initial_date.strftime("%y%m%d%H")
 
         # 2.1 Download file for given initial date
         # rclone_copy(run_id=run_id)
-        wrf_ds = xr.open_dataset(f"{FIR_SCRATCH_WRF_DATA}wrfout_d02_processed_{run_id}.nc")
+        wrf_ds = xr.open_dataset(
+            f"{FIR_SCRATCH_WRF_DATA}wrfout_d02_processed_{run_id}.nc"
+        )
 
         for lead_time in EVAL_LEAD_TIMES:
             print(f"  lead time: {lead_time}")
 
             for field in SCORECARD_FIELDS:
                 # 1.1 CLIMATEX ground truth (initial_date=date+lead_time, lead_time=0)
-                raw_truth_field = climatex_ds[field].sel(initial_date=xtime(initial_date, lead_time), lead_time=0)
+                raw_truth_field = climatex_ds[field].sel(
+                    initial_date=xtime(initial_date, lead_time), lead_time=0
+                )
 
                 # 1.2 CLIMATEX prediction for given lead time (initial_date=initial_date, lead_time=lead_time)
-                raw_climatex_field = climatex_ds[field].sel(initial_date=initial_date, lead_time=lead_time)
+                raw_climatex_field = climatex_ds[field].sel(
+                    initial_date=initial_date, lead_time=lead_time
+                )
 
                 # 2.2 Select XTIME=initial_date+lead_time
-                print(' - xtime: ', xtime(initial_date, lead_time))
+                print(" - xtime: ", xtime(initial_date, lead_time))
                 raw_wrf_field = wrf_ds[field].sel(XTIME=xtime(initial_date, lead_time))
 
                 # 2.3 Grid interpolation
-                if counter==0:
-                    clipped_src_coords, clipped_tgt_coords, src_mask, tgt_mask = get_domain_coords(wrf_ds, climatex_ds)
-                
+                if counter == 0:
+                    clipped_src_coords, clipped_tgt_coords, src_mask, tgt_mask = (
+                        get_domain_coords(wrf_ds, climatex_ds)
+                    )
+
                 wrf_field = pyresample_resampling(
                     src_coords=clipped_src_coords,
                     tgt_coords=clipped_tgt_coords,
@@ -134,11 +154,23 @@ if __name__ == "__main__":
 
                 # 1.3 Evaluate CLIMATEX pred
                 rmse_DL_reg = rmse(climatex_field, truth_field)
-                scorecard_df.loc[len(scorecard_df)] = [initial_date.strftime('%Y-%m-%dT%H:00:00'), lead_time, field, "DL_reg", rmse_DL_reg]
+                scorecard_df.loc[len(scorecard_df)] = [
+                    initial_date.strftime("%Y-%m-%dT%H:00:00"),
+                    lead_time,
+                    field,
+                    "DL_reg",
+                    rmse_DL_reg,
+                ]
 
                 # 1.4 Evaluate WAC00WG-01 pred
-                rmse_num_reg = rmse(wr_field, truth_field)
-                scorecard_df.loc[len(scorecard_df)] = [initial_date.strftime('%Y-%m-%dT%H:00:00'), lead_time, field, "num_reg", rmse_num_reg]
+                rmse_num_reg = rmse(wrf_field, truth_field)
+                scorecard_df.loc[len(scorecard_df)] = [
+                    initial_date.strftime("%Y-%m-%dT%H:00:00"),
+                    lead_time,
+                    field,
+                    "num_reg",
+                    rmse_num_reg,
+                ]
 
                 counter += 1
 
@@ -146,4 +178,4 @@ if __name__ == "__main__":
     climatex_ds.close()
 
     # 3.3 Save error data
-    scorecard_df.to_csv('reports/scorecard_results')
+    scorecard_df.to_csv("reports/scorecard_results")

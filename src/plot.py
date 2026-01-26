@@ -13,7 +13,7 @@ import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 
-from data_constants import OBS_DATA_DIR, PRED_DATA_DIR, ERROR_DATA_DIR
+from utils.data_constants import OBS_DATA_DIR, PRED_DATA_DIR, ERROR_DATA_DIR
 
 FIELDS = ["2t"]
 RESAMPLING_METHODS = ["nearest-neighbor", "linear", "cubic"]
