@@ -6,14 +6,7 @@ import numpy as np
 from utils.data_reading_utils import read_pkl
 from utils.resampling_utils import pyresample_resampling, scipy_resampling
 from utils.model_forecast_evaluator import model_forecast_evaluator_factory
-from utils.data_constants import (
-    OBS_DATA_DIR,
-    PRED_DATA_DIR,
-    ERROR_DATA_DIR,
-    OBS_EVAL_FIELDS,
-    FIR_SCRATCH_WRF_DATA,
-    EVAL_LEAD_TIMES,
-)
+from data_constants import EVAL_LEAD_TIMES
 
 if __name__ == "__main__":
     """

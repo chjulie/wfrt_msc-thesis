@@ -1,5 +1,5 @@
 [project]
-name = "observations"
+name = "wfrt"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -19,3 +19,11 @@ dependencies = [
     "xgcm>=0.9.0",
     "xwrf>=0.0.5",
 ]
+[tool.uv]
+package = true
+
+[tool.uv.workspace]
+members = [
+    ".",
+]
+

@@ -9,7 +9,7 @@ PRED_DATA_DIR = "data/prediction_data"
 
 PRED_PLOT_DIR = "reports/plots/prediction"
 GEOM_RES_DIR = "../../reports/plots/geometry"
-FIR_SCRATCH_WRF_DATA = "/scratch/juchar/wrf_data/"
+FIR_SCRATCH = "/scratch/juchar"
 
 # DOMAIN BOUNDS (Climatex bounds)
 DOMAIN_MINX = -146.74888611
