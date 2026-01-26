@@ -73,7 +73,7 @@ class ModelForecastEvaluator(ABC):
     def get_station_observation(self):
         obs_file_path = f"{OBS_DATA_DIR}/{self.current_datetime.strftime('%Y%m%d')}_verif_eccc_obs.csv"
         obs_df = pd.read_csv(
-            obs_path,
+            obs_file_path,
             converters={
                 "UTC_DATE": lambda x: pd.to_datetime(
                     x, format="%Y-%m-%dT%H:%M:%S"
