@@ -28,10 +28,7 @@ if __name__ == "__main__":
         help="End date of evaluation period, format: YYYY-mm-dd",
     )
     parser.add_arguements(
-        "--model",
-        type=str,
-        required=True,
-        help="'dl_reg', 'nwp_reg' or 'dl_glob'."
+        "--model", type=str, required=True, help="'dl_reg', 'nwp_reg' or 'dl_glob'."
     )
     args = parser.parse_args()
 
@@ -48,5 +45,3 @@ if __name__ == "__main__":
     )
     evaluator.evaluate()
     print(" > Program finished successfully !")
-
-
