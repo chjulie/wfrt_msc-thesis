@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
+import subprocess
 import numpy as np
 import xarray as xr
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from pyresample import geometry, bilinear, kd_tree
 
-from data_constants import OBS_DATA_DIR, PRED_DATA_DIR, ERROR_DATA_DIR, OBS_EVAL_FIELDS, FIR_SCRATCH_WRF_DATA
+from utils.data_constants import PRED_DATA_DIR, ERROR_DATA_DIR, OBS_EVAL_FIELDS, FIR_SCRATCH, EVAL_LEAD_TIMES
 
 def model_forecast_evaluator_factory(
     model_name: str,
     date_range,
     lead_times: list[str],
-    **kwargs,
 ):
     if model_name == "dl_reg":
         evaluator = RegDLModelForecastEvaluator(
@@ -23,7 +23,6 @@ def model_forecast_evaluator_factory(
         evaluator = RegNWPModelForecastEvaluator(
             date_range=date_range,
             lead_times=lead_times,
-            **kwargs,
         )
     elif model_name=="dl_glob":
         evaluator = GlobDLModelForecastEvaluator(
@@ -41,6 +40,7 @@ class ModelForecastEvaluator(ABC):
                 lead_times: list[str],
                 model_name: str,
                 ):
+
         self.date_range = date_range
         self.lead_times = lead_times
         self.model_name = model_name
@@ -51,10 +51,13 @@ class ModelForecastEvaluator(ABC):
         self.stations_coords = None
         self.current_initial_date = None
         self.current_lead_time = None
-        self.current_datetime = self.initial_date + self.current_lead_time # TODO properly add this using timedelta
         self.current_field = None
-        self.current_data = None
+        self.model_resampled_data = None
         self.current_obs_data_df = None
+    
+    @property
+    def current_datetime(self):
+        return self.current_initial_date + timedelta(hours=int(self.current_lead_time))
 
     @abstractmethod
     def compute_coordinates(self):
@@ -71,37 +74,37 @@ class ModelForecastEvaluator(ABC):
         raise NotImplementedError
 
     def get_station_observation(self):
-        obs_file_path = f"{OBS_DATA_DIR}/{self.current_datetime.strftime('%Y%m%d')}_verif_eccc_obs.csv"
+        obs_file_path = f"{FIR_SCRATCH}/eccc_data/clipped_eccc_{self.current_datetime.strftime('%Y-%m-%dT%H:%M:%S')}.csv"
         obs_df = pd.read_csv(
             obs_file_path,
             converters={
                 "UTC_DATE": lambda x: pd.to_datetime(
-                    x, format="%Y-%m-%dT%H:%M:%S"
+                    x, format="%Y-%m-%d %H:%M:%S+00:00"
                 ).tz_localize("utc")
             },
-        )
+        ).drop(columns=['Unnamed: 0'])
         # Get station localisation
         s_longitudes = obs_df.x.values  # 's' prefix indicates 'station observation'
         s_latitudes = obs_df.y.values  # 's' prefix indicates 'station observation'
         self.stations_coords = np.column_stack((s_longitudes, s_latitudes))
 
         # Get station data
-        self.current_obs_data_df = obs_df[obs_df.UTC_DATE == self.current_datetime]   # TODO: check that this work (or add localization)
-
+        self.current_obs_data_df = obs_df[obs_df.UTC_DATE == self.current_datetime.tz_localize("utc")]   # TODO: check that this work (or add localization)
     
     def rmse(self, field: str):
-        assert self.current_data.shape == self.current_obs_data_df[field].shape, "self.current_data and self.obs_data must have the same shape"
-        rmse = np.sqrt(np.power(self.current_data.shape-self.current_obs_data_df[field], 2)) # returns a df??
+        field_obs = OBS_EVAL_FIELDS.get(field)
+        assert self.model_resampled_data.shape == self.current_obs_data_df[field_obs].shape, "self.model_resampled_data and self.obs_data must have the same shape"
+        rmse = np.sqrt(np.power(self.model_resampled_data.shape-self.current_obs_data_df[field_obs], 2)) # returns a df??
     
         df = pd.DataFrame(data={
             "model": self.model_name,
             "initial_date": self.current_initial_date,
             "lead_time": self.current_lead_time,
-            "station_id": self.current_obs_data_df['STATION_ID'],   # TODO: check that it is actually called like this
+            "station_id": self.current_obs_data_df['STN_ID'],
             "field": field,
             "rmse": rmse,
         })
-
+        print(' * rmse : ', rmse)
         # append to existing error df
         self.error_df = pd.concat((self.error_df, df), axis=0)
 
@@ -112,16 +115,17 @@ class ModelForecastEvaluator(ABC):
         '''
         src_grid = geometry.SwathDefinition(lons=self.coords[:, 0], lats=self.coords[:, 1])
         tgt_grid = geometry.SwathDefinition(lons=self.stations_coords[:, 0], lats=self.stations_coords[:, 1])
+        # TODO: convert data to data.values only if data : xr.DataArray
         resampled_data = kd_tree.resample_nearest(
             source_geo_def=src_grid,
-            data=data,
+            data=data.values,
             target_geo_def=tgt_grid,
             radius_of_influence=50000,
         )
-        self.current_data = resampled_data
+        self.model_resampled_data = resampled_data
 
     def save_error_df(self):
-        self.error_df.to_csv(f"{ERROR_DATA_DIR}errors-{self.model_name}-{date_range[0].strftime('%Y%m%d')}_{date_range[-1].strftime('%Y%m%d')}.csv")
+        self.error_df.to_csv(f"{ERROR_DATA_DIR}errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
 
 
 
@@ -129,21 +133,22 @@ class RegNWPModelForecastEvaluator(ModelForecastEvaluator):
     def __init__(self, 
                 date_range,
                 lead_times: list[str],
-                **kwargs,
                 ):
-        super().__init__(self, 
+        super().__init__( 
                 date_range=date_range, 
-                lead_times=lead_times, 
-                stations_coords=stations_coords, 
+                lead_times=lead_times,
                 model_name='reg_nwp'
                 )
 
         self.run_id = None
-        self.model_id = kwargs.get('model_id', 'WAC00WG-01',)
-        self.file_name = f"wrfout_d02_processed_{self.run_id}.nc"
-        self.local_folder_path = FIR_SCRATCH_WRF_DATA
+        self.model_id = 'WAC00WG-01'
+        self.local_folder_path = f"{FIR_SCRATCH}/wrf_data"
 
         self.ds = None
+
+    @property
+    def file_name(self):
+        return f"wrfout_d02_processed_{self.run_id}.nc"
 
     def compute_coordinates(self):
         self.coords = np.column_stack((self.ds.XLONG.values.flatten(), self.ds.XLAT.values.flatten()))
@@ -159,28 +164,28 @@ class RegNWPModelForecastEvaluator(ModelForecastEvaluator):
         return datetime.strftime(a + pd.Timedelta(hours=int(b)), format='%Y-%m-%dT%H:00:00.000000000')
 
     def evaluate(self):
-        for initial_date in date_range:
+        for initial_date in self.date_range:
             print(f"⚡️ date: {initial_date}")
             self.current_initial_date = initial_date
             self.run_id = initial_date.strftime('%y%m%d%H')
 
             # 2.1 Download file for given initial date
             self.rclone_copy()
-            self.ds = xr.open_dataset(f"{self.local_folder_path}{self.file_name}")
+            self.ds = xr.open_dataset(f"{self.local_folder_path}/{self.file_name}")
 
             for lead_time in EVAL_LEAD_TIMES:
                 print(f" - lead time: {lead_time}")
                 self.current_lead_time = lead_time
                 self.get_station_observation()  # one DF for one lead time
 
-                for field in OBS_EVAL_FIELDS:
-                    field_data = self.ds[field].sel(XTIME=self.xtime(initial_date, lead_time))
+                for field_mod, field_obs in OBS_EVAL_FIELDS.items():
+                    field_data = self.ds[field_mod].sel(XTIME=self.xtime(initial_date, lead_time))
 
                     if self.counter == 0:
                         self.compute_coordinates()
 
                     self.get_prediction_at_station_loc(field_data)
-                    self.rmse(field)
+                    self.rmse(field_mod)
 
                 self.counter += 1
 
