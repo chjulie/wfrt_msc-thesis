@@ -93,8 +93,15 @@ class ModelForecastEvaluator(ABC):
     
     def rmse(self, field: str):
         field_obs = OBS_EVAL_FIELDS.get(field)
-        assert self.model_resampled_data.shape == self.current_obs_data_df[field_obs].shape, "self.model_resampled_data and self.obs_data must have the same shape"
-        rmse = np.sqrt(np.power(self.model_resampled_data.shape-self.current_obs_data_df[field_obs], 2)) # returns a df??
+
+        if field == '2t':
+            # TODO : convert obs to kelvin 
+            observations = self.current_obs_data_df[field_obs] + 273.15     # convert to Kelvin
+        else :
+            observations = self.current_obs_data_df[field_obs]
+
+        assert self.model_resampled_data.shape == observations.shape, "self.model_resampled_data and self.obs_data must have the same shape"
+        rmse = np.sqrt(np.power(self.model_resampled_data-observations, 2)) # returns a df??
     
         df = pd.DataFrame(data={
             "model": self.model_name,
@@ -104,7 +111,7 @@ class ModelForecastEvaluator(ABC):
             "field": field,
             "rmse": rmse,
         })
-        print(' * rmse : ', rmse)
+        
         # append to existing error df
         self.error_df = pd.concat((self.error_df, df), axis=0)
 
@@ -125,7 +132,7 @@ class ModelForecastEvaluator(ABC):
         self.model_resampled_data = resampled_data
 
     def save_error_df(self):
-        self.error_df.to_csv(f"{ERROR_DATA_DIR}errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
+        self.error_df.to_csv(f"{ERROR_DATA_DIR}/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
 
 
 
@@ -170,11 +177,17 @@ class RegNWPModelForecastEvaluator(ModelForecastEvaluator):
             self.run_id = initial_date.strftime('%y%m%d%H')
 
             # 2.1 Download file for given initial date
-            self.rclone_copy()
+            # self.rclone_copy()
+            try: 
+                self.rclone_copy()
+            except subprocess.CalledProcessError as e:
+                print(f"⚠️ [WARNING] File {self.file_name} not found on Nextcloud")
+                continue
+                
             self.ds = xr.open_dataset(f"{self.local_folder_path}/{self.file_name}")
 
             for lead_time in EVAL_LEAD_TIMES:
-                print(f" - lead time: {lead_time}")
+                # print(f" - lead time: {lead_time}")
                 self.current_lead_time = lead_time
                 self.get_station_observation()  # one DF for one lead time
 
