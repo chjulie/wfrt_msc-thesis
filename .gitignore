@@ -12,6 +12,7 @@ __marimo__/
 *.pyc 
 
 # data
+data/*
 */data/*
 */eccc_data/*
 */prediction_data/*
