@@ -17,7 +17,7 @@ def _():
 
 @app.cell
 def _(pd):
-    stations_statistics = pd.read_csv('../scratch/eccc_data/stations_statistics.csv', index_col='STN_ID').drop(columns=['Unnamed: 0'])
+    stations_statistics = pd.read_csv('data/eccc_data/clipped_stations_statistics.csv', index_col='STN_ID')
     stations_statistics
     return (stations_statistics,)
 
@@ -29,7 +29,7 @@ def _(ccrs):
         central_longitude=-90.0,        # STAND_LON
         true_scale_latitude=60.0        # Usually TRUELAT2 for polar stereo
     )
-    scatter_size=8
+    scatter_size=24
     edge_lw = 0.2
     return edge_lw, projection, scatter_size
 
@@ -58,7 +58,7 @@ def _(
             for ax in axs:
                 # Add base map features
                 ax.add_feature(cfeature.OCEAN, facecolor="#a6bddb", zorder=0)
-                ax.add_feature(cfeature.LAND, facecolor="#f0f0f0", zorder=0)
+                ax.add_feature(cfeature.LAND, facecolor="#f5f5f5", zorder=0)
                 ax.add_feature(cfeature.COASTLINE, zorder=2)
                 ax.add_feature(cfeature.BORDERS, linestyle=":", zorder=2)
 

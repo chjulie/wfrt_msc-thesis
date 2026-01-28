@@ -1,17 +1,22 @@
 # python file
 .python-version
 */__pycache__/*
+utils/__pycache__/*
+src/utils/__pycache__/*
+*cpython-313.pyc
 */__marimo__/*
 __marimo__/
 */*.egg-info/*
 .DS_Store
 */.DS_Store
+*.pyc 
 
 # data
-data/*
+*/data/*
 */eccc_data/*
 */prediction_data/*
 */error_data/*
+*/wrf_data/*
 
 # plots
 reports/plots/*

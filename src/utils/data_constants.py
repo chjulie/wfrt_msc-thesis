@@ -3,8 +3,8 @@ import numpy as np
 # directories
 # OBS_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/eccc_data"
 # PRED_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/prediction_data"
-ERROR_DATA_DIR = "data/error_data"
-OBS_DATA_DIR = "data/eccc_data"
+ERROR_DATA_DIR = "../data/error_data"
+OBS_DATA_DIR = "../../scratch/eccc_data"
 PRED_DATA_DIR = "data/prediction_data"
 
 PRED_PLOT_DIR = "reports/plots/prediction"
@@ -31,4 +31,24 @@ MODEL_ID = "WAC00WG-01"
 EVAL_LEAD_TIMES = [
     "6",
     "12",
+    "18",
+    "24",
+    "30",
+    "36",
+    "42",
+    "48",
+    "54",
+    "60",
+    "66",
+    "72",
+    "78",
+    "84"
 ]  # , '18', '24', '30', '36', '42', '48', '54', '60', '66', '72', '78', '84']
+
+
+# OBSERVATIONS
+OBS_EVAL_FIELDS = {
+    '2t' : 'TEMP',
+    'tp' : 'PRECIP_AMOUNT', 
+    '10ff' : 'WIND_SPEED',
+    }
