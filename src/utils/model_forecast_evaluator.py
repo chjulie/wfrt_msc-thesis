@@ -5,6 +5,7 @@ import xarray as xr
 import pandas as pd
 from datetime import datetime, timedelta
 from pyresample import geometry, bilinear, kd_tree
+import os
 
 from utils.data_constants import PRED_DATA_DIR, ERROR_DATA_DIR, OBS_EVAL_FIELDS, FIR_SCRATCH, EVAL_LEAD_TIMES
 
@@ -89,6 +90,7 @@ class ModelForecastEvaluator(ABC):
         self.stations_coords = np.column_stack((s_longitudes, s_latitudes))
 
         # Get station data
+        print(f" - current_initial_date: {self.current_initial_date}, lead_time: {self.current_lead_time}, df_obs.UTC_date : {obs_df.UTC_DATE.unique()}")
         self.current_obs_data_df = obs_df[obs_df.UTC_DATE == self.current_datetime.tz_localize("utc")]   # TODO: check that this work (or add localization)
     
     def rmse(self, field: str):
@@ -108,6 +110,8 @@ class ModelForecastEvaluator(ABC):
             "initial_date": self.current_initial_date,
             "lead_time": self.current_lead_time,
             "station_id": self.current_obs_data_df['STN_ID'],
+            "x": self.current_obs_data_df['x'],
+            "y": self.current_obs_data_df['y'],
             "field": field,
             "rmse": rmse,
         })
@@ -144,7 +148,7 @@ class RegNWPModelForecastEvaluator(ModelForecastEvaluator):
         super().__init__( 
                 date_range=date_range, 
                 lead_times=lead_times,
-                model_name='reg_nwp'
+                model_name='nwp_reg'
                 )
 
         self.run_id = None
@@ -162,26 +166,49 @@ class RegNWPModelForecastEvaluator(ModelForecastEvaluator):
 
     def rclone_copy(self):
         source = f"wfrt-nextcloud:Documents/WRF-forecasts/{self.model_id}/wrfout_d02_processed_{self.run_id}.nc"
-        cmd = f"rclone copy '{source}' '{self.local_folder_path}' --progress"
+        # cmd = f"rclone copy '{source}' '{self.local_folder_path}'"# --progress"
+
+        cmd = [
+            "rclone", "copy",
+            source,
+            self.local_folder_path,
+            "--checksum"
+        ]
         # print(' - rclone cmd: ', cmd)
-        subprocess.run(cmd, shell=True, check=True)
+        subprocess.run(cmd, capture_output=True, check=True, text=True)
 
     @staticmethod
     def xtime(a, b):
         return datetime.strftime(a + pd.Timedelta(hours=int(b)), format='%Y-%m-%dT%H:00:00.000000000')
 
     def evaluate(self):
+
         for initial_date in self.date_range:
-            print(f"⚡️ date: {initial_date}")
+            print(f"⚡️ date: {initial_date}", flush=True)
             self.current_initial_date = initial_date
             self.run_id = initial_date.strftime('%y%m%d%H')
 
             # 2.1 Download file for given initial date
-            # self.rclone_copy()
             try: 
                 self.rclone_copy()
             except subprocess.CalledProcessError as e:
-                print(f"⚠️ [WARNING] File {self.file_name} not found on Nextcloud")
+                stderr = e.stderr or ""
+                if "corrupted on transfer" in stderr and "hash differ" in stderr:
+                    print(
+                        f"⚠️ [WARNING] Corrupted transfer for file {self.file_name} "
+                        f"(checksum mismatch)",
+                        flush=True
+                    )
+                elif "not found" in stderr or "directory not found" in stderr:
+                    print(
+                        f"⚠️ [WARNING] File {self.file_name} not found on Nextcloud",
+                        flush=True
+                    )
+                else:
+                    print(
+                        f"❌ [ERROR] rclone failed for file {self.file_name}\n{stderr}",
+                        flush=True
+                    )
                 continue
                 
             self.ds = xr.open_dataset(f"{self.local_folder_path}/{self.file_name}")
@@ -192,7 +219,13 @@ class RegNWPModelForecastEvaluator(ModelForecastEvaluator):
                 self.get_station_observation()  # one DF for one lead time
 
                 for field_mod, field_obs in OBS_EVAL_FIELDS.items():
-                    field_data = self.ds[field_mod].sel(XTIME=self.xtime(initial_date, lead_time))
+                    try:
+                        xtime = self.xtime(initial_date,lead_time)
+                        print(f" - xtime: {xtime}")
+                        field_data = self.ds[field_mod].sel(XTIME=self.xtime(initial_date, lead_time))
+                    except KeyError as e:
+                        print(f"⚠️ [WARNING] Lead time {lead_time} not found in file {self.file_name}", flush=True)
+                        continue
 
                     if self.counter == 0:
                         self.compute_coordinates()
@@ -203,6 +236,7 @@ class RegNWPModelForecastEvaluator(ModelForecastEvaluator):
                 self.counter += 1
 
             self.ds.close()
+            os.remove(f"{self.local_folder_path}/wrfout_d02_processed_{self.run_id}.nc") # remove wrfout file to save scratch space
 
         # save error_df to csv
         self.save_error_df()

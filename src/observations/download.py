@@ -9,7 +9,7 @@ from src.utils.data_constants import FIR_SCRATCH, DOMAIN_MINX, DOMAIN_MAXX, DOMA
 ECCC_FIELDS = "ID%2CSTN_ID%2CUTC_DATE%2CTEMP%2CPRECIP_AMOUNT%2CWIND_SPEED%2CWIND_DIRECTION"
 
 if __name__ == "__main__":
-
+    # run with uv run python -m src.observations.download --start_date 2023-01-01 --end_date 2024-01-04
     parser = argparse.ArgumentParser(description="Process WRFOUT data files.")
     parser.add_argument(
         "--start_date", type=str, required=True, help="Date in YYYY-mm-dd format"

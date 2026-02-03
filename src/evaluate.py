@@ -12,6 +12,9 @@ if __name__ == "__main__":
     """
     Evaluates model prediction against observations
 
+    - nwp model : 
+        runtime (2023) : approx. 2 hours (with rclone download)
+
     """
     # ARGS PARSING -----------------------------------------------------
     parser = argparse.ArgumentParser(description="Process WRFOUT data files.")
@@ -38,10 +41,14 @@ if __name__ == "__main__":
         start=args.start_date, end=args.end_date
     )  # should be at 00 everyday
 
+    print(" > Instantiating evaluator", flush=True)
     evaluator = model_forecast_evaluator_factory(
         model_name=args.model,
         date_range=date_range,
         lead_times=EVAL_LEAD_TIMES,
     )
+
+    print(" > Starting evaluation", flush=True)
     evaluator.evaluate()
-    print(" > Program finished successfully !")
+
+    print(" > Program finished successfully !", flush=True)

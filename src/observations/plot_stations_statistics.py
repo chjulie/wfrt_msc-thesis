@@ -10,9 +10,25 @@ def _():
     import warnings
     import pandas as pd
     import matplotlib.pyplot as plt
+    from matplotlib import rc
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
-    return ccrs, cfeature, pd, plt, warnings
+    return ccrs, cfeature, mo, pd, plt, rc, warnings
+
+
+@app.cell
+def _(plt, rc):
+    rc("font", **{"family": "serif", "serif": ["Times New Roman"], "size": "14"})
+    rc("text", usetex=True)
+    rc("lines", linewidth=2)
+    plt.rcParams["axes.facecolor"] = "w"
+    plt.rcParams['axes.grid'] = True 
+    plt.rcParams["grid.linewidth"] = 0.2 
+
+    temp_cmap = "Reds"
+    precip_cmap = "Blues"
+    wind_cmap = "Wistia"
+    return precip_cmap, temp_cmap, wind_cmap
 
 
 @app.cell
@@ -40,10 +56,13 @@ def _(
     cfeature,
     edge_lw,
     plt,
+    precip_cmap,
     projection,
     scatter_size,
     stations_statistics,
+    temp_cmap,
     warnings,
+    wind_cmap,
 ):
     fig, axs = plt.subplots(1,3,figsize=(20,10), subplot_kw={'projection': projection})
     axs = axs.ravel()
@@ -57,25 +76,53 @@ def _(
             )
             for ax in axs:
                 # Add base map features
-                ax.add_feature(cfeature.OCEAN, facecolor="#a6bddb", zorder=0)
+                ax.add_feature(cfeature.OCEAN, facecolor="#D4DFED", zorder=0)
                 ax.add_feature(cfeature.LAND, facecolor="#f5f5f5", zorder=0)
                 ax.add_feature(cfeature.COASTLINE, zorder=2)
                 ax.add_feature(cfeature.BORDERS, linestyle=":", zorder=2)
 
-    sc0 = axs[0].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_TEMP, cmap='Reds', edgecolors='black', linewidth=edge_lw, transform=ccrs.PlateCarree())
+    sc0 = axs[0].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_TEMP, cmap=temp_cmap, edgecolors='black', linewidth=edge_lw, transform=ccrs.PlateCarree())
     cbar = fig.colorbar(sc0, ax=axs[0], orientation="vertical", shrink=0.4, label="Number of observations")
     axs[0].set_title('Temperature observations')
 
-    sc1 = axs[1].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_PRECIP, edgecolors='black', linewidth=edge_lw, cmap='Blues', transform=ccrs.PlateCarree())
+    sc1 = axs[1].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_PRECIP, edgecolors='black', linewidth=edge_lw, cmap=precip_cmap, transform=ccrs.PlateCarree())
     cbar = fig.colorbar(sc1, ax=axs[1], orientation="vertical", shrink=0.4, label="Number of observations")
     axs[1].set_title('Precipitations observations')
 
-    sc2 = axs[2].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_WIND, cmap='Wistia', edgecolors='black', linewidth=edge_lw, transform=ccrs.PlateCarree())
+    sc2 = axs[2].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_WIND, cmap=wind_cmap, edgecolors='black', linewidth=edge_lw, transform=ccrs.PlateCarree())
     cbar = fig.colorbar(sc2, ax=axs[2], orientation="vertical", shrink=0.4, label="Number of observations")
     axs[2].set_title('Wind observations')
 
     plt.savefig('reports/plots/observations/stations_statistics.svg', dpi=600, format='svg', bbox_inches='tight')
     plt.show()
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    # Compute total number of observations
+    """)
+    return
+
+
+@app.cell
+def _(stations_statistics):
+    print(stations_statistics.index)
+    return
+
+
+@app.cell
+def _(stations_statistics):
+    n_stations = stations_statistics.index.nunique()
+    n_temp_obs = stations_statistics['size_TEMP'].sum()
+    n_precip_obs = stations_statistics['size_PRECIP'].sum()
+    n_wind_obs = stations_statistics['size_WIND'].sum()
+
+    print(' - n_stations : ', n_stations)
+    print(' - n_temp_obs : ', n_temp_obs)
+    print(' - n_precip_obs : ', n_precip_obs)
+    print(' - n_wind_obs : ', n_wind_obs)
     return
 
 
