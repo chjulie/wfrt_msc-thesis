@@ -2,10 +2,11 @@ import argparse
 import datetime
 import pandas as pd
 import numpy as np
+import xarray as xr
 
 from utils.data_reading_utils import read_pkl
 from utils.resampling_utils import pyresample_resampling, scipy_resampling
-from utils.model_forecast_evaluator import model_forecast_evaluator_factory
+from utils.model_forecast_evaluator import model_evaluator_factory
 from utils.data_constants import EVAL_LEAD_TIMES
 
 if __name__ == "__main__":
@@ -35,17 +36,23 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    # # -----------------------------------------------------------------
+    # global_ds = xr.open_dataset("/cluster/projects/nn10090k/results/juchar/global-lam-inference-20230101T00-20230115T12.nc")
+    # print(' - latitude : ', global_ds['latitude'].values.shape)
+    # print(' - longitude : ', global_ds['longitude'].values.shape)
     # -----------------------------------------------------------------
 
     date_range = pd.date_range(
         start=args.start_date, end=args.end_date
     )  # should be at 00 everyday
 
+
     print(" > Instantiating evaluator", flush=True)
-    evaluator = model_forecast_evaluator_factory(
+    evaluator = model_evaluator_factory(
         model_name=args.model,
         date_range=date_range,
         lead_times=EVAL_LEAD_TIMES,
+        system='Olivia'
     )
 
     print(" > Starting evaluation", flush=True)
