@@ -2,15 +2,19 @@ import argparse
 import datetime
 import pandas as pd
 import numpy as np
+import xarray as xr
 
 from utils.data_reading_utils import read_pkl
 from utils.resampling_utils import pyresample_resampling, scipy_resampling
-from utils.model_forecast_evaluator import model_forecast_evaluator_factory
+from utils.model_forecast_evaluator import model_evaluator_factory
 from utils.data_constants import EVAL_LEAD_TIMES
 
 if __name__ == "__main__":
     """
     Evaluates model prediction against observations
+
+    - nwp model : 
+        runtime (2023) : approx. 2 hours (with rclone download)
 
     """
     # ARGS PARSING -----------------------------------------------------
@@ -32,16 +36,27 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    # # -----------------------------------------------------------------
+    ds = xr.open_dataset("/cluster/projects/nn10090k/results/juchar/climatex-lam-inference-20220701T00-20220715T18.nc")
+
+    print(' ** INITIAL_DATE : ', ds.initial_date.values)
+    print(' ** LEAD_TIME : ', ds.lead_time.values)
     # -----------------------------------------------------------------
 
     date_range = pd.date_range(
         start=args.start_date, end=args.end_date
     )  # should be at 00 everyday
 
-    evaluator = model_forecast_evaluator_factory(
+
+    print(" > Instantiating evaluator", flush=True)
+    evaluator = model_evaluator_factory(
         model_name=args.model,
         date_range=date_range,
         lead_times=EVAL_LEAD_TIMES,
+        system='Olivia'
     )
+
+    print(" > Starting evaluation", flush=True)
     evaluator.evaluate()
-    print(" > Program finished successfully !")
+
+    print(" > Program finished successfully !", flush=True)

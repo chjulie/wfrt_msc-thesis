@@ -6,7 +6,8 @@ import pandas as pd
 import numpy as np
 
 from utils.resampling_utils import pyresample_resampling
-from data_constants import P_LEVELS, EVAL_LEAD_TIMES, MODEL_ID, FIR_SCRATCH
+from utils.scorecard_evaluator import scorecard_evaluator_factory
+from utils.data_constants import P_LEVELS, EVAL_LEAD_TIMES, MODEL_ID, FIR_SCRATCH
 
 SCORECARD_FIELDS = ["2t"]
 
@@ -83,6 +84,8 @@ if __name__ == "__main__":
     3.2 Average in time
     3.3 Save to scorecard.csv
     """
+
+    
     parser = argparse.ArgumentParser(description="Evaluation againts Climatex")
     parser.add_argument(
         "--start_date",
@@ -96,86 +99,35 @@ if __name__ == "__main__":
         required=True,
         help="End date of evaluation period, format: YYYY-mm-dd",
     )
+    parser.add_argument(
+        "--model", type=str, required=True, help="'dl_reg' or 'nwp_reg'."
+    )
     args = parser.parse_args()
+    
+    # --------------------------------------------------------------
+    # climatex_ds = xr.open_dataset(f"{FIR_SCRATCH}/data/cleaned_data/anemoi-climatex-training-6h-20230101-20231231.zarr", engine='zarr')
+    # for i,a in enumerate(climatex_ds.attrs['variables']):
+    #     print(i,a)
+    # print(climatex_ds)
+
+    # --------------------------------------------------------------
+
     date_range = pd.date_range(
         start=args.start_date, end=args.end_date
     )  # should be at 00 everyday
 
-    print(" - daterange: ", date_range)
+    # print(" - daterange: ", date_range)
 
-    scorecard_df = pd.DataFrame(
-        columns=["initial_date", "lead_time", "field", "model", "rmse"]
+    print(" > Instantiating evaluator", flush=True)
+    evaluator = scorecard_evaluator_factory(
+        model_name=args.model,
+        date_range=date_range,
+        lead_times=EVAL_LEAD_TIMES,
     )
 
-    counter = 0
-    climatex_ds = xr.open_dataset("climatex_data_path")
+    print(" > Starting evaluation", flush=True)
+    evaluator.evaluate()
 
-    for initial_date in date_range:
-        print(f"⚡️ date: {initial_date}")
-        run_id = initial_date.strftime("%y%m%d%H")
+    print(" > Program finished successfully !", flush=True)
 
-        # 2.1 Download file for given initial date
-        # rclone_copy(run_id=run_id)
-        wrf_ds = xr.open_dataset(
-            f"{FIR_SCRATCH}/wrf_data/wrfout_d02_processed_{run_id}.nc"
-        )
-
-        for lead_time in EVAL_LEAD_TIMES:
-            print(f"  lead time: {lead_time}")
-
-            for field in SCORECARD_FIELDS:
-                # 1.1 CLIMATEX ground truth (initial_date=date+lead_time, lead_time=0)
-                raw_truth_field = climatex_ds[field].sel(
-                    initial_date=xtime(initial_date, lead_time), lead_time=0
-                )
-
-                # 1.2 CLIMATEX prediction for given lead time (initial_date=initial_date, lead_time=lead_time)
-                raw_climatex_field = climatex_ds[field].sel(
-                    initial_date=initial_date, lead_time=lead_time
-                )
-
-                # 2.2 Select XTIME=initial_date+lead_time
-                print(" - xtime: ", xtime(initial_date, lead_time))
-                raw_wrf_field = wrf_ds[field].sel(XTIME=xtime(initial_date, lead_time))
-
-                # 2.3 Grid interpolation
-                if counter == 0:
-                    clipped_src_coords, clipped_tgt_coords, src_mask, tgt_mask = (
-                        get_domain_coords(wrf_ds, climatex_ds)
-                    )
-
-                wrf_field = pyresample_resampling(
-                    src_coords=clipped_src_coords,
-                    tgt_coords=clipped_tgt_coords,
-                    data=raw_wrf_field[src_mask],
-                )
-                climatex_field = raw_climatex_field[tgt_mask]
-                truth_field = raw_truth_field[tgt_mask]
-
-                # 1.3 Evaluate CLIMATEX pred
-                rmse_DL_reg = rmse(climatex_field, truth_field)
-                scorecard_df.loc[len(scorecard_df)] = [
-                    initial_date.strftime("%Y-%m-%dT%H:00:00"),
-                    lead_time,
-                    field,
-                    "DL_reg",
-                    rmse_DL_reg,
-                ]
-
-                # 1.4 Evaluate WAC00WG-01 pred
-                rmse_num_reg = rmse(wrf_field, truth_field)
-                scorecard_df.loc[len(scorecard_df)] = [
-                    initial_date.strftime("%Y-%m-%dT%H:00:00"),
-                    lead_time,
-                    field,
-                    "num_reg",
-                    rmse_num_reg,
-                ]
-
-                counter += 1
-
-        wrf_ds.close()
-    climatex_ds.close()
-
-    # 3.3 Save error data
-    scorecard_df.to_csv("reports/scorecard_results")
+    # --------------------------------------------------------------

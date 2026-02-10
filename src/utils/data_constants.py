@@ -3,13 +3,15 @@ import numpy as np
 # directories
 # OBS_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/eccc_data"
 # PRED_DATA_DIR = "/Users/Julie/Desktop/wfrt_msc-thesis/data/prediction_data"
-ERROR_DATA_DIR = "../data/error_data"
+ERROR_DATA_DIR = "data/error_data"
 OBS_DATA_DIR = "../../scratch/eccc_data"
 PRED_DATA_DIR = "data/prediction_data"
 
 PRED_PLOT_DIR = "reports/plots/prediction"
 GEOM_RES_DIR = "../../reports/plots/geometry"
 FIR_SCRATCH = "/scratch/juchar"
+
+OLIVIA_GROUP_SCRATCH = "/cluster/projects/nn10090k"
 
 # DOMAIN BOUNDS (Climatex bounds)
 DOMAIN_MINX = -146.74888611

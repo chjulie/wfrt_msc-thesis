@@ -19,13 +19,13 @@ def _():
 
 @app.cell
 def _():
-    obs_dir = '../../../scratch/eccc_data/'
+    obs_dir = '/scratch/juchar/eccc_data/'
     return (obs_dir,)
 
 
 @app.cell
 def _(xr):
-    climatex_ds = xr.open_dataset('../../data/prediction_data/bris-lam-inference-20230101T12-20230102T12.nc')
+    climatex_ds = xr.open_dataset('/scratch/juchar/prediction_data/bris-lam-inference-20230101T12-20230102T12.nc')
     wrf_ds = xr.open_dataset('../../data/wrf_data/wrfout_d02_processed_23012000.nc')
     return climatex_ds, wrf_ds
 
@@ -45,7 +45,7 @@ def _(cKDTree, np):
 
         src_near = np.array([len(idx) > 0 for idx in tree_src.query_ball_point(station_coords, r=tolerance)])
         tgt_near = np.array([len(idx) > 0 for idx in tree_tgt.query_ball_point(station_coords, r=tolerance)])
-    
+
         return src_near & tgt_near
     return (clip_stations,)
 
@@ -63,7 +63,7 @@ def _(clip_stations, obs_dir, os, pd, src_coords, tgt_coords):
             )
             station_coords = obs_df[["x", "y"]].to_numpy()
             mask = clip_stations(station_coords=station_coords, src_coords=src_coords, tgt_coords=tgt_coords)
-        
+
             clipped_stations = obs_df[mask].copy()
             clipped_stations.to_csv(f"{obs_dir}/clipped_{obs_file}")
     return
