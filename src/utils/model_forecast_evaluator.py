@@ -22,7 +22,7 @@ def model_evaluator_factory(
         evaluator = DLModelEvaluator(
             date_range=date_range,
             lead_times=lead_times,
-            prediction_data_path='',
+            prediction_data_path='/cluster/projects/nn10090k/results/juchar/climatex-lam-inference-20220701T00-20220715T18.nc',
             system=system,
         )
     elif model_name=="nwp_reg":

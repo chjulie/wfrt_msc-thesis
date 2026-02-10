@@ -37,9 +37,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # # -----------------------------------------------------------------
-    # global_ds = xr.open_dataset("/cluster/projects/nn10090k/results/juchar/global-lam-inference-20230101T00-20230115T12.nc")
-    # print(' - latitude : ', global_ds['latitude'].values.shape)
-    # print(' - longitude : ', global_ds['longitude'].values.shape)
+    ds = xr.open_dataset("/cluster/projects/nn10090k/results/juchar/climatex-lam-inference-20220701T00-20220715T18.nc")
+
+    print(' ** INITIAL_DATE : ', ds.initial_date.values)
+    print(' ** LEAD_TIME : ', ds.lead_time.values)
     # -----------------------------------------------------------------
 
     date_range = pd.date_range(
