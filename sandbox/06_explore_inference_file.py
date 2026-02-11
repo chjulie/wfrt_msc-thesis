@@ -35,12 +35,21 @@ def plot_basemap(ax):
     ax.add_feature(cfeature.BORDERS, linestyle=":", linewidth=0.5, zorder=2)
 
 
-def plot_data(ax, ds, field, time, norm):
+def plot_data(ax, ds, field, time, norm, cbar_title):
 
     data = ds[field].sel(time=time).values
 
-    geom = gpd.points_from_xy(ds.longitude, ds.latitude, crs=ccrs.PlateCarree())
-    gdf = gpd.GeoDataFrame({"data": data}, geometry=geom)
+    try:
+        geom = gpd.points_from_xy(ds.longitude, ds.latitude, crs=ccrs.PlateCarree())
+        gdf = gpd.GeoDataFrame({"data": data}, geometry=geom)
+
+    except ValueError:
+        geom = gpd.points_from_xy(
+            ds.longitude.values.ravel(),
+            ds.latitude.values.ravel(),
+            crs=ccrs.PlateCarree(),
+        )
+        gdf = gpd.GeoDataFrame({"data": data.ravel()}, geometry=geom)
 
     gdf.plot(
         ax=ax,
@@ -48,7 +57,7 @@ def plot_data(ax, ds, field, time, norm):
         markersize=10,
         cmap="coolwarm",
         legend=True,
-        legend_kwds={"shrink": 0.4},
+        legend_kwds={"label": cbar_title, "shrink": 0.4},
         transform=ccrs.PlateCarree(),
         zorder=1,
         norm=norm,
