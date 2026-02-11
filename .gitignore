@@ -13,6 +13,7 @@ __marimo__/
 *.pyc 
 
 # data
+*.nc
 data/*
 */data/*
 */eccc_data/*

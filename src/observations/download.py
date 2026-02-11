@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 import pandas as pd
 
-from src.utils.data_constants import FIR_SCRATCH, DOMAIN_MINX, DOMAIN_MAXX, DOMAIN_MINY, DOMAIN_MAXY
+from src.utils.data_constants import FIR_SCRATCH, DOMAIN_MINX, DOMAIN_MAXX, DOMAIN_MINY, DOMAIN_MAXY, OLIVIA_GROUP_SCRATCH
 
 ECCC_FIELDS = "ID%2CSTN_ID%2CUTC_DATE%2CTEMP%2CPRECIP_AMOUNT%2CWIND_SPEED%2CWIND_DIRECTION"
 
@@ -28,11 +28,14 @@ if __name__ == "__main__":
     ]
     date_range = [(day + off).tz_localize('utc') for day in daily_range for off in offsets]
 
+    save_path = f"{OLIVIA_GROUP_SCRATCH}/datasets/ECCC_OBS"
+    # save_path = f"{FIR_SCRATCH}/eccc_data/"
+
     for utc_date in date_range:
 
         # download .csv file 
         print(f"⚡️ utc_date={utc_date.strftime(format="%Y-%m-%dT%H:%M:%S")}")
-        download_cmd = f'wget -O {FIR_SCRATCH}/eccc_data/eccc_{utc_date.strftime(format="%Y-%m-%dT%H:%M:%S")}.csv "https://api.weather.gc.ca/collections/climate-hourly/items?bbox={DOMAIN_MINX},{DOMAIN_MINY},{DOMAIN_MAXX},{DOMAIN_MAXY}&UTC_DATE={utc_date.strftime(format="%Y-%m-%dT%H:%M:%S")}Z&properties={ECCC_FIELDS}&sortby=UTC_DATE&f=csv"' # Date is specified using local time!!
+        download_cmd = f'wget -O {save_path}/eccc_{utc_date.strftime(format="%Y-%m-%dT%H:%M:%S")}.csv "https://api.weather.gc.ca/collections/climate-hourly/items?bbox={DOMAIN_MINX},{DOMAIN_MINY},{DOMAIN_MAXX},{DOMAIN_MAXY}&UTC_DATE={utc_date.strftime(format="%Y-%m-%dT%H:%M:%S")}Z&properties={ECCC_FIELDS}&sortby=UTC_DATE&f=csv"' # Date is specified using local time!!
         print(' > executing command: ', download_cmd)
         subprocess.run(download_cmd, shell=True, check=True)
 

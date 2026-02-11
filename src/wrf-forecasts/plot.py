@@ -36,7 +36,7 @@ def plot_triangulation(
 
         # Add base map features
         ax.add_feature(cfeature.OCEAN, facecolor="#a6bddb", zorder=0)
-        ax.add_feature(cfeature.LAND, facecolor="#f0f0f0", zorder=0)
+        ax.add_feature(cfeature.LAND, facecolor="#d4dfed", zorder=0)
         ax.add_feature(cfeature.COASTLINE, zorder=2)
         ax.add_feature(cfeature.BORDERS, linestyle=":", zorder=2)
 
