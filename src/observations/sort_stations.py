@@ -26,7 +26,7 @@ def _():
 @app.cell
 def _(xr):
     climatex_ds = xr.open_dataset('/scratch/juchar/prediction_data/bris-lam-inference-20230101T12-20230102T12.nc')
-    wrf_ds = xr.open_dataset('../../data/wrf_data/wrfout_d02_processed_23012000.nc')
+    wrf_ds = xr.open_dataset('data/wrf_data/wrfout_d02_processed_23012000.nc')
     return climatex_ds, wrf_ds
 
 
@@ -66,6 +66,14 @@ def _(clip_stations, obs_dir, os, pd, src_coords, tgt_coords):
 
             clipped_stations = obs_df[mask].copy()
             clipped_stations.to_csv(f"{obs_dir}/clipped_{obs_file}")
+    return (obs_file,)
+
+
+@app.cell
+def _(obs_dir, obs_file, os):
+    for clipped_file in os.listdir(obs_dir):
+        if clipped_file.startswith('clipped_eccc'):
+            print(f" ⚡️ file : {obs_file}")
     return
 
 

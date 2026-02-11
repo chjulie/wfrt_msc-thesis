@@ -90,7 +90,7 @@ class ScorecardEvaluator(ABC):
 
         rmse = np.sqrt(np.power(array1 - array2, 2)).mean()  # spatial average
 
-        return rmse
+        return rmse.values
 
     def get_ground_truth(self, t, field):
         field_index = self.climatex_var_map.get(field)
