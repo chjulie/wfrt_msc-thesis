@@ -150,7 +150,7 @@ if __name__ == "__main__":
 
     # print(" - daterange: ", date_range)
 
-    print(" > Instantiating evaluator", flush=True)
+    print(" [INFO] Instantiating evaluator", flush=True)
     evaluator = scorecard_evaluator_factory(
         model_name=args.model,
         date_range=date_range,
@@ -161,6 +161,6 @@ if __name__ == "__main__":
     print(" > Starting evaluation", flush=True)
     evaluator.evaluate()
 
-    print(" > Program finished successfully !", flush=True)
+    print(" [INFO] Program finished successfully !", flush=True)
 
     # --------------------------------------------------------------

@@ -10,7 +10,6 @@
 #SBATCH --ntasks=128
 #SBATCH --output=../logs/scorecard_logs/scorecard_%j.out
 
-# ⚠️ check env variable VARS_TO_WRITE in inference_utils.py to make sure that you write the right vars
 START=$(printf '%s' "$1")
 END=$(printf '%s' "$2")
 MODEL=$(printf '%s' "$3")   # models : global, bris, stage-c, stage-d2/3/4
