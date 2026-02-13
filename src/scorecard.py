@@ -10,6 +10,35 @@ from utils.scorecard_evaluator import scorecard_evaluator_factory
 from utils.data_constants import P_LEVELS, EVAL_LEAD_TIMES, MODEL_ID, FIR_SCRATCH
 
 SCORECARD_FIELDS = ["2t"]
+# SCORECARD_FIELDS = [
+#     'z_50',
+#     'z_100',
+#     'z_250',
+#     'z_500',
+#     'z_850',
+#     'u_50',
+#     'u_100',
+#     'u_250',
+#     'u_500',
+#     'u_850',
+#     'v_50',
+#     'v_100',
+#     'v_250',
+#     'v_500',
+#     'v_850',
+#     't_50',
+#     't_100',
+#     't_250',
+#     't_500',
+#     't_850',
+#     '10u',
+#     '10v',
+#     '2t',
+#     'msl',
+#     'sp',
+#     'tp',
+#     'z',
+#     ]
 
 
 def rclone_copy(run_id: str):
@@ -85,7 +114,7 @@ if __name__ == "__main__":
     3.3 Save to scorecard.csv
     """
 
-    
+    # TODO: add argument for lead time too ?
     parser = argparse.ArgumentParser(description="Evaluation againts Climatex")
     parser.add_argument(
         "--start_date",
@@ -100,7 +129,10 @@ if __name__ == "__main__":
         help="End date of evaluation period, format: YYYY-mm-dd",
     )
     parser.add_argument(
-        "--model", type=str, required=True, help="'dl_reg' or 'nwp_reg'."
+        "--model", type=str, required=True, help="one of the model stages or 'nwp_reg'."
+    )
+    parser.add_argument(
+        "--system", type=str, required=True, help="'fir' or 'olivia'."
     )
     args = parser.parse_args()
     
@@ -123,6 +155,7 @@ if __name__ == "__main__":
         model_name=args.model,
         date_range=date_range,
         lead_times=EVAL_LEAD_TIMES,
+        system=args.system,
     )
 
     print(" > Starting evaluation", flush=True)

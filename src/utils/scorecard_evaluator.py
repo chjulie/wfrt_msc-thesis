@@ -9,6 +9,8 @@ from scipy.spatial import cKDTree
 from utils.resampling_utils import pyresample_resampling
 import os
 
+import matplotlib.pyplot as plt
+
 from utils.data_constants import (
     PRED_DATA_DIR,
     ERROR_DATA_DIR,
@@ -22,17 +24,23 @@ def scorecard_evaluator_factory(
     model_name: str,
     date_range,
     lead_times: list[str],
+    system: str,
 ):
-    if model_name == "dl_reg":
+    print(f" [INFO] model : {model_name}")
+    print(f" [INFO] system : {system}")
+    if ('stage-' in model_name) | ('bris' in model_name):
         evaluator = RegDLScorecardEvaluator(
             date_range=date_range,
             lead_times=lead_times,
+            model_name=model_name,
+            system=system,
         )
 
     elif model_name == "nwp_reg":
         evaluator = RegNWPScorecardEvaluator(
             date_range=date_range,
             lead_times=lead_times,
+            system=system
         )
     else:
         raise NotImplementedError
@@ -46,11 +54,13 @@ class ScorecardEvaluator(ABC):
         date_range,
         lead_times: list[str],
         model_name: str,
+        system: str,
     ):
 
         self.date_range = date_range
         self.lead_times = lead_times
         self.model_name = model_name
+        print(f" [INFO] Evaluating for lead times : {lead_times}")
 
         self.current_initial_date = None
         self.current_lead_time = None
@@ -58,10 +68,22 @@ class ScorecardEvaluator(ABC):
             columns=["initial_date", "lead_time", "field", "model", "rmse"]
         )
 
-        self.ground_truth_ds = xr.open_dataset(
-            f"{FIR_SCRATCH}/data/cleaned_data/anemoi-climatex-training-6h-20230101-20231231.zarr",
-            engine="zarr",
-        )
+        self.system = system
+        if system == 'fir':
+            self.ground_truth_ds = xr.open_dataset(
+                f"{FIR_SCRATCH}/data/cleaned_data/anemoi-climatex-training-6h-20230101-20231231.zarr",
+                engine="zarr",
+            )
+            print(f" [INFO] Found ground truth dataset at path : {FIR_SCRATCH}/data/cleaned_data/anemoi-climatex-training-6h-20230101-20231231.zarr")
+        elif system == 'olivia':
+            self.ground_truth_ds = xr.open_dataset(
+                f"/nird/datapeak/NS10090K/datasets/climatex/anemoi-climatex-training-6h-20190601-20231231.zarr",
+                engine="zarr",
+            )
+            print(f" [INFO] Found ground truth dataset at path : /nird/datapeak/NS10090K/datasets/climatex/anemoi-climatex-training-6h-20230101-20231231.zarr")
+        else: 
+            raise NotImplementedError
+
         self.climatex_var_map = {
             "2t": 3,
             "10u": 0,
@@ -90,6 +112,8 @@ class ScorecardEvaluator(ABC):
             "v_850": 84,
         }
 
+        print(" [INFO] Evaluating fields ", list(self.climatex_var_map.keys()))
+
     @property
     def climatex_missing(self):
         return [
@@ -97,24 +121,44 @@ class ScorecardEvaluator(ABC):
             for d in self.ground_truth_ds.attrs["missing_dates"]
         ]
 
+    @property
+    def gt_time(self):
+        start = self.ground_truth_ds.attrs["start_date"]
+        end = self.ground_truth_ds.attrs["end_date"]
+        frequency = self.ground_truth_ds.attrs["frequency"]
+        time = pd.date_range(start=start, end=end, freq=frequency)
+        return time
+
     @staticmethod
     def xtime(a, b):
         return datetime.strftime(a + pd.Timedelta(hours=int(b)), format="%Y-%m-%d")
 
     @staticmethod
     def rmse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
+        array1, array2 = np.asarray(array1), np.asarray(array2)
         assert array1.shape == array2.shape, "Both arrays must have the same shape"
         assert (
             array1.ndim == 1 and array2.ndim == 1
-        ), "Both arrays must be one-dimesional"
+        ), "Both arrays must be one-dimensional"
 
+        # print("🐳 Passed checks")
         rmse = np.sqrt(np.power(array1 - array2, 2)).mean()  # spatial average
+        # print("🐳 Computed rmse")
 
         return rmse.values
 
-    def get_ground_truth(self, t, field):
+    def get_ground_truth(self, xtime, field):
         field_index = self.climatex_var_map.get(field)
-        return self.ground_truth_ds["data"][t, field_index, 0, :]
+        time_index = np.where(self.gt_time == xtime)
+        # print(f" ** xtime : {xtime}")
+        # print(f" ** time index : {len(time_index)} {time_index}")
+        if len(time_index) > 0:
+            data = self.ground_truth_ds["data"][time_index[0], field_index, 0, :]
+        else:
+            print(" NO MATCHING DATE")
+            raise ValueError(f"No matching date in ground truth dataset for datetime {xtime}")
+
+        return data
 
     def save_scorecard_df(self):
         self.scorecard_df.to_csv(
@@ -127,9 +171,13 @@ class RegNWPScorecardEvaluator(ScorecardEvaluator):
         self,
         date_range,
         lead_times: list[str],
+        system: str,
     ):
         super().__init__(
-            date_range=date_range, lead_times=lead_times, model_name="nwp_reg"
+            date_range=date_range, 
+            lead_times=lead_times, 
+            model_name="nwp_reg", 
+            system=system,
         )
 
         self.run_id = None
@@ -168,6 +216,7 @@ class RegNWPScorecardEvaluator(ScorecardEvaluator):
         wrf_mask = np.array([len(idx) > 0 for idx in indices])
 
         return climatex_mask, wrf_mask
+
 
     def get_domain_coords(self, wrf_ds, climatex_ds):
 
@@ -227,7 +276,7 @@ class RegNWPScorecardEvaluator(ScorecardEvaluator):
                 # print(f"⚡️ datetime {datetime_index} : {xtime}", flush=True)
 
                 if xtime in self.climatex_missing:
-                    print(f"⚠️ [WARNING] datetime {xtime} missing in climatex dataset. ")
+                    print(f"⚠️ [WARNING] datetime {xtime} missing in ground truth dataset. ")
                     continue
 
                 for field in self.climatex_var_map.keys():
@@ -302,34 +351,98 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
         self,
         date_range,
         lead_times: list[str],
+        model_name: str,
+        system: str,
     ):
         super().__init__(
             date_range=date_range,
             lead_times=lead_times,
-            model_name="dl_reg",
+            model_name=model_name,
+            system=system
         )
         self.forecast_folder = (
-            f"/cluster/projects/nn10090k/results/juchar/climatex-lam-inference"
+            f"/cluster/projects/nn10090k/results/juchar/{model_name}-lam-inference"
         )
-        self.forecast_ds = None
+        print(f" [INFO] Looking for inference results in {self.forecast_folder}")
+        self.forecast_ds = None # holds the prediction (inference) for self.current_initial_date
 
+    @staticmethod
+    def clip_coords(wrf_coords, prediction_coords, climatex_coords, tolerance=0.03):
+        '''
+        prediction_coords = climatex_coords with trim_edges (=> domain contained in climatex coords!)
+
+        '''
+        # Compute intersection between prediction_coords and wrf_coords : this yields the evaluation domain
+        tree_wrf = cKDTree(wrf_coords)
+        indices = tree_wrf.query_ball_point(prediction_coords, r=tolerance)
+        prediction_mask = np.array([len(idx) > 0 for idx in indices])
+
+        tree_prediction = cKDTree(prediction_coords)
+        indices = tree_prediction.query_ball_point(wrf_coords, r=tolerance)
+        wrf_mask = np.array([len(idx) > 0 for idx in indices])
+
+        # Propagate intersection to the climatex domain
+        tree_climatex = cKDTree(climatex_coords)
+        dist, idx_map = tree_climatex.query(prediction_coords, k=1)
+
+        if not np.all(dist < 1e-12):
+            raise ValueError("D2 is not an exact subset of D1.")
+
+        climatex_mask = np.zeros(len(climatex_coords), dtype=bool)
+        climatex_mask[idx_map[prediction_mask]] = True
+
+        return prediction_mask, wrf_mask, climatex_mask
+
+
+    def get_domain_coords(self, wrf_ds, prediction_ds, climatex_ds):
+        wrf_coords = np.column_stack(
+            (wrf_ds.XLONG.values.flatten(), wrf_ds.XLAT.values.flatten())
+        )
+        prediction_coords = np.column_stack(
+            (prediction_ds["longitude"].values, prediction_ds["latitude"].values)
+        )
+        climatex_coords = np.column_stack(
+            (climatex_ds["longitudes"].values, climatex_ds["latitudes"].values)
+        )
+
+        prediction_mask, wrf_mask, climatex_mask = self.clip_coords(wrf_coords, prediction_coords, climatex_coords)
+
+        clipped_climatex_coords = climatex_coords[climatex_mask]
+        clipped_prediction_coords = prediction_coords[prediction_mask]
+
+        return prediction_mask, climatex_mask
+
+
+    def clip_domain(self):
+        wrf_ds = xr.open_dataset('/cluster/projects/nn10090k/juchar/wrfout_d02_processed_23010100.nc')
+        prediction_mask, climatex_mask = self.get_domain_coords(wrf_ds, self.forecast_ds, self.ground_truth_ds)
+
+        return prediction_mask, climatex_mask
+        
     def evaluate(self):
+        # print(f" *** GT TIME : {len(self.gt_time)}")
+        # print(f" *** gt data : {self.ground_truth_ds.time.shape}")
+        # print(f" *** missing date : {self.climatex_missing}")
         datetime_index = 0
         counter = 0
 
+        print(f" [INFO] Starting evaluation for date range : {self.date_range[0]} - {self.date_range[-1]}")
+
         for initial_date in self.date_range:
-            print(f"⚡️ date : {initial_date}", flush=True)
+            print(f" [INFO] ⚡️ current_initial_date : {initial_date}", flush=True)
             self.current_initial_date = initial_date
 
             self.forecast_ds = xr.open_dataset(
                 f"{self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc"
-            )
+            )   # inference folder, file for that specific initial date
+            print(f" [INFO] Opened inference data at path {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc")
 
             for lead_time in EVAL_LEAD_TIMES:
                 self.current_lead_time = lead_time
                 xtime = initial_date + pd.Timedelta(hours=int(lead_time))
                 # print(f"⚡️ datetime {datetime_index} : {xtime}", flush=True)
 
+                # TODO: try without this check : probs nan propagation ?
                 if xtime in self.climatex_missing:
                     print(
                         f"⚠️ [WARNING] datetime {xtime} missing in climatex dataset.",
@@ -338,23 +451,36 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
                     continue
 
                 for field in self.climatex_var_map.keys():
-                    raw_truth_field = self.get_ground_truth(datetime_index, field)
-
+                    raw_truth_field = self.get_ground_truth(xtime, field)
                     try:
-                        field_data = self.forecast_ds[field].sel(
-                            time=self.xtime(initial_date, lead_time)
+                        raw_prediction_field = self.forecast_ds[field].sel(
+                            time=xtime
                         )
                     except KeyError as e:
                         print(
-                            f"⚠️ [WARNING] Lead time {lead_time} not found in file {self.predictions_data_path.split('/')[-1]}",
+                            f"⚠️ [WARNING] Lead time {lead_time} or field {field} not found in file {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc",
                             flush=True,
                         )
 
-                    # Clip domain
+                    # Clip climatex domain to evaluation domain
                     if counter == 0:
-                        (
-                            clipped_wrf_coords,
-                            clipped_climatex_coords,
-                            wrf_mask,
-                            climatex_mask,
-                        ) = self.get_domain_coords(self.ds, self.ground_truth_ds)
+                        # TODO : need an nwp ds
+                        prediction_mask, climatex_mask = self.clip_domain()
+
+                    truth_field = raw_truth_field.squeeze()[climatex_mask]
+                    prediction_field = raw_prediction_field.squeeze()[prediction_mask]
+
+                    rmse = self.rmse(prediction_field, truth_field)
+                    self.scorecard_df.loc[len(self.scorecard_df)] = [
+                        initial_date.strftime("%Y-%m-%dT%H:00:00"),
+                        lead_time,
+                        field,
+                        self.model_name,
+                        rmse,
+                    ]
+                    counter += 1
+                
+                datetime_index += 1
+
+            self.forecast_ds.close()
+        self.save_scorecard_df()
