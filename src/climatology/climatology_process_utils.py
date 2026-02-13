@@ -3,14 +3,32 @@ import xarray as xr
 import xwrf
 import xgcm
 import metpy
-import metpy.calc as mpcal
+import metpy.calc as mpcalc
 import numpy as np
 import pandas as pd
-from datetime import timedelta
+from datetime import timedelta, datetime
 from pint import UnitRegistry
 from metpy.units import units
+import subprocess
 
 DATA_DIR = '/scratch/juchar/climatology/'
+GRAVITY_CONSTANT = 9.81
+ANEMOI_PRESSURE_LEVELS = np.array(
+    [
+        1000.0,
+        925.0,
+        850.0,
+        700.0,
+        500.0,
+        400.0,
+        300.0,
+        250.0,
+        200.0,
+        150.0,
+        100.0,
+        50.0,
+    ]
+)  # in hPa
 pressure_level_variables = [
         "U",
         "V",
@@ -104,7 +122,7 @@ def process_wrf(wrfout_f, wrfuvic_file):
         }
     )
 
-    ds = ds.drop_vars(["XTIME", "CLAT", "z"])
+    ds = ds.drop_vars(["XTIME", "CLAT"])
 
     ds['x'].attrs['axis'] = 'X'
     ds['y'].attrs['axis'] = 'Y'
@@ -115,12 +133,33 @@ def process_wrf(wrfout_f, wrfuvic_file):
 
     return ds
 
+def calculate_sea_level_pressure(
+        elevations, surface_pressure, air_temperature_2m, q_2m
+    ):
+        ideal_gas_constant = 29.3  # m/K
+
+        virtual_temp_2m = mpcalc.virtual_temperature(air_temperature_2m, q_2m)
+        virtual_temp_2m_with_lapse_rt = (
+            virtual_temp_2m.values + 0.0065 * elevations
+        )  # lapse rate of 6.5 K/km
+
+        slp = surface_pressure * np.exp(
+            elevations / (ideal_gas_constant * virtual_temp_2m_with_lapse_rt)
+        )
+
+        # Add the units
+        slp_units = slp * units("Pa")
+        slp_units.metpy.quantify()
+
+        # add to our dataset
+        return slp_units
+
 
 def decompress_file(f):
     compressed = "_compressed" in f
     if compressed:
         file_name = f[:-11]
-        decompress_cmd = f"nccopy -d0 -s {os.path.join(RAW_DATA_DIR,f)} {os.path.join(RAW_DATA_DIR,file_name)}"
+        decompress_cmd = f"nccopy -d0 -s {os.path.join(DATA_DIR,f)} {os.path.join(DATA_DIR,file_name)}"
         result = subprocess.run(decompress_cmd, shell=True, check=True)
     else:
         file_name = f
@@ -211,13 +250,13 @@ def calculate_accumulated_variable(variable, raw_data):
     total = calculate_var_fctn(raw_data, var_name_list)
 
     # TODO: handle case when we don't have the file, download it maybe?
-    if os.path.exists(os.path.join(RAW_DATA_DIR, previous_ds_name)):
-        previous_ds = xr.open_dataset(os.path.join(RAW_DATA_DIR, previous_ds_name))
+    if os.path.exists(os.path.join(DATA_DIR, previous_ds_name)):
+        previous_ds = xr.open_dataset(os.path.join(DATA_DIR, previous_ds_name))
 
     else:
         print(f" * Decompressing previous file: {previous_ds_name}")
         previous_file_name = decompress_file(previous_ds_name + "_compressed")
-        previous_ds = xr.open_dataset(os.path.join(RAW_DATA_DIR, previous_file_name))
+        previous_ds = xr.open_dataset(os.path.join(DATA_DIR, previous_file_name))
 
     # calculate total rain
     previous_total = calculate_var_fctn(previous_ds, var_name_list)
@@ -238,3 +277,4 @@ def calculate_accumulated_variable(variable, raw_data):
     )
 
     return accumulated_variable
+

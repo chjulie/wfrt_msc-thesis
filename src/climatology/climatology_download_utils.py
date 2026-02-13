@@ -74,7 +74,7 @@ def find_water_year_subfolder(date, valid_subfolders):
         return folder
 
 def get_rclone_source(year):
-    if (year >= 2018) and (year < 2023):
+    if ((year >= 2000) and (year < 2023)):
         rclone_source = "climatex"
     else:
         rclone_source = "climatex2"
