@@ -4,11 +4,10 @@
 
 #SBATCH --job-name=scorecard
 #SBATCH --account=nn10090k
-#SBATCH --partition=accel
-#SBATCH --gpus=1
+#SBATCH --partition=normal
 #SBATCH --time=16:00:00
-#SBATCH --cpus-per-task=32    # All CPU cores of one Grace-Hopper card
-#SBATCH --mem=100G    # Amount of CPU memory
+#SBATCH --mem-per-cpu=2G
+#SBATCH --ntasks=128
 #SBATCH --output=../logs/scorecard_logs/scorecard_%j.out
 
 # ⚠️ check env variable VARS_TO_WRITE in inference_utils.py to make sure that you write the right vars

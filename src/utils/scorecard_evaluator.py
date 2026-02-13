@@ -8,6 +8,8 @@ from pyresample import geometry, bilinear, kd_tree
 from scipy.spatial import cKDTree
 from utils.resampling_utils import pyresample_resampling
 import os
+import warnings
+warnings.filterwarnings("ignore", message="Engine 'cfgrib'")
 
 import matplotlib.pyplot as plt
 
@@ -427,21 +429,24 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
         counter = 0
 
         print(f" [INFO] Starting evaluation for date range : {self.date_range[0]} - {self.date_range[-1]}")
-
+   
         for initial_date in self.date_range:
             print(f" [INFO] ⚡️ current_initial_date : {initial_date}", flush=True)
             self.current_initial_date = initial_date
 
             self.forecast_ds = xr.open_dataset(
-                f"{self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc"
+                f"{self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc",
+                engine="netcdf4"
             )   # inference folder, file for that specific initial date
             print(f" [INFO] Opened inference data at path {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc")
 
             for lead_time in EVAL_LEAD_TIMES:
                 self.current_lead_time = lead_time
                 xtime = initial_date + pd.Timedelta(hours=int(lead_time))
+                
                 # print(f"⚡️ datetime {datetime_index} : {xtime}", flush=True)
-
+                if counter > 0:
+                    break
                 # TODO: try without this check : probs nan propagation ?
                 if xtime in self.climatex_missing:
                     print(
@@ -451,6 +456,8 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
                     continue
 
                 for field in self.climatex_var_map.keys():
+                    if counter > 0:
+                        break
                     raw_truth_field = self.get_ground_truth(xtime, field)
                     try:
                         raw_prediction_field = self.forecast_ds[field].sel(
@@ -470,7 +477,11 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
                     truth_field = raw_truth_field.squeeze()[climatex_mask]
                     prediction_field = raw_prediction_field.squeeze()[prediction_mask]
 
+                    # print(f" [INFO] prediction_field.shape : {prediction_field.shape}")
+                    # print(f" [INFO] trurfth_field.shape : {truth_field.shape}")
+
                     rmse = self.rmse(prediction_field, truth_field)
+                    print(f" [INFO] rmse for field {field} : {rmse}")
                     self.scorecard_df.loc[len(self.scorecard_df)] = [
                         initial_date.strftime("%Y-%m-%dT%H:00:00"),
                         lead_time,
