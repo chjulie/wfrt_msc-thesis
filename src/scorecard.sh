@@ -4,10 +4,11 @@
 
 #SBATCH --job-name=scorecard
 #SBATCH --account=nn10090k
-#SBATCH --partition=normal
+#SBATCH --partition=accel
+#SBATCH --gpus=1
 #SBATCH --time=16:00:00
-#SBATCH --mem-per-cpu=2G
-#SBATCH --ntasks=128
+#SBATCH --cpus-per-task=32    # All CPU cores of one Grace-Hopper card
+#SBATCH --mem=100G    # Amount of CPU memory
 #SBATCH --output=../logs/scorecard_logs/scorecard_%j.out
 
 START=$(printf '%s' "$1")

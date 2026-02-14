@@ -30,6 +30,7 @@ reports/plots/*
 logs/*
 
 # slurm output files
+*.log
 *.out
 
 # figures

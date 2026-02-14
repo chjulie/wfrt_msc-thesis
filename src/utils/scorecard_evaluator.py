@@ -136,20 +136,6 @@ class ScorecardEvaluator(ABC):
         return datetime.strftime(a + pd.Timedelta(hours=int(b)), format="%Y-%m-%d")
 
     @staticmethod
-    def rmse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
-        array1, array2 = np.asarray(array1), np.asarray(array2)
-        assert array1.shape == array2.shape, "Both arrays must have the same shape"
-        assert (
-            array1.ndim == 1 and array2.ndim == 1
-        ), "Both arrays must be one-dimensional"
-
-        # print("🐳 Passed checks")
-        rmse = np.sqrt(np.power(array1 - array2, 2)).mean()  # spatial average
-        # print("🐳 Computed rmse")
-        return rmse
-        # return rmse.values
-    
-    @staticmethod
     def clip_coords(wrf_coords, prediction_coords, climatex_coords, tolerance=0.03):
         '''
         prediction_coords = climatex_coords with trim_edges (=> domain contained in climatex coords!)
@@ -212,6 +198,7 @@ class ScorecardEvaluator(ABC):
         self.scorecard_df.to_csv(
             f"{ERROR_DATA_DIR}/scorecard-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv"
         )
+        print(f" [INFO] ✅ Saved Dataframe to csv at path : {ERROR_DATA_DIR}/scorecard-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
 
 
 class RegNWPScorecardEvaluator(ScorecardEvaluator):
@@ -254,7 +241,18 @@ class RegNWPScorecardEvaluator(ScorecardEvaluator):
             a + pd.Timedelta(hours=int(b)), format="%Y-%m-%dT%H:00:00.000000000"
         )
 
+    @staticmethod
+    def rmse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
+        array1, array2 = np.asarray(array1), np.asarray(array2)
+        assert array1.shape == array2.shape, "Both arrays must have the same shape"
+        assert (
+            array1.ndim == 1 and array2.ndim == 1
+        ), "Both arrays must be one-dimensional"
 
+        rmse = np.sqrt(np.power(array1 - array2, 2)).mean()  # spatial average
+
+        return rmse
+    
     def clip_domain(self):
         prediction_ds = xr.open_dataset('/scratch/juchar/prediction_data/20220701T00.nc')
         _, wrf_mask, climatex_mask = self.get_domain_coords(self.ds, prediction_ds, self.ground_truth_ds)
@@ -414,6 +412,15 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
         print(f" [INFO] Looking for inference results in {self.forecast_folder}")
         self.forecast_ds = None # holds the prediction (inference) for self.current_initial_date
 
+    @staticmethod
+    def rmse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
+        array1, array2 = np.asarray(array1), np.asarray(array2)
+        assert array1.shape == array2.shape, "Both arrays must have the same shape"
+
+        rmse = np.sqrt(np.power(array1 - array2, 2)).mean(axis=1)  # spatial average
+
+        return rmse
+    
 
     def clip_domain(self):
         wrf_ds = xr.open_dataset('/cluster/projects/nn10090k/juchar/wrfout_d02_processed_23010100.nc')
@@ -433,11 +440,19 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
             print(f" [INFO] ⚡️ current_initial_date : {initial_date}", flush=True)
             self.current_initial_date = initial_date
 
-            self.forecast_ds = xr.open_dataset(
-                f"{self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc",
-                engine="netcdf4"
-            )   # inference folder, file for that specific initial date
-            print(f" [INFO] Opened inference data at path {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc")
+            try:
+                self.forecast_ds = xr.open_dataset(
+                    f"{self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc",
+                    engine="netcdf4"
+                )   # inference folder, file for that specific initial date
+                print(f" [INFO] Opened inference data at path {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc")
+            except FileNotFoundError as e:
+                print(
+                    f"⚠️ [WARNING] Error when opening inference data : {e}.",
+                    flush=True,
+                )
+                continue
+
 
             for lead_time in EVAL_LEAD_TIMES:
                 self.current_lead_time = lead_time
@@ -455,41 +470,41 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
                     )
                     continue
 
-                for field in self.climatex_var_map.keys():
-                    if counter > 0:
-                        break
-                    raw_truth_field = self.get_ground_truth(xtime, field)
-                    try:
-                        raw_prediction_field = self.forecast_ds[field].sel(
-                            time=xtime
-                        )
-                    except KeyError as e:
-                        print(
-                            f"⚠️ [WARNING] Lead time {lead_time} or field {field} not found in file {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc",
-                            flush=True,
-                        )
+                # go over field in parallel
+                fields = list(self.climatex_var_map.keys())
+                field_indices = [self.climatex_var_map[f] for f in fields]
 
-                    # Clip climatex domain to evaluation domain
-                    if counter == 0:
-                        # TODO : need an nwp ds
-                        prediction_mask, climatex_mask = self.clip_domain()
+                # get ground truth
+                time_idx = np.where(self.gt_time == xtime)[0]
+                if len(time_idx) == 0:
+                    raise ValueError(f"No matching date in ground truth dataset for datetime {xtime}")
+                time_idx = time_idx[0]
 
-                    truth_field = raw_truth_field.squeeze()[climatex_mask]
-                    prediction_field = raw_prediction_field.squeeze()[prediction_mask]
+                raw_truth_fields = self.ground_truth_ds["data"].isel(
+                    time=time_idx,
+                    variable=field_indices,
+                    ensemble=0,
+                ) 
+                raw_truth_fields = raw_truth_fields.assign_coords(variable=fields)
+                raw_prediction_fields = self.forecast_ds[fields].sel(time=xtime).to_array(dim="variable")
 
-                    # print(f" [INFO] prediction_field.shape : {prediction_field.shape}")
-                    # print(f" [INFO] trurfth_field.shape : {truth_field.shape}")
+                if counter == 0:
+                    prediction_mask, climatex_mask = self.clip_domain()
 
-                    rmse = self.rmse(prediction_field, truth_field)
-                    print(f" [INFO] rmse for field {field} : {rmse}")
-                    self.scorecard_df.loc[len(self.scorecard_df)] = [
-                        initial_date.strftime("%Y-%m-%dT%H:00:00"),
-                        lead_time,
-                        field,
-                        self.model_name,
-                        rmse,
-                    ]
-                    counter += 1
-                
-            self.forecast_ds.close()
+                truth_fields = raw_truth_fields.squeeze()[...,climatex_mask]
+                prediction_fields = raw_prediction_fields.squeeze()[...,prediction_mask]    
+
+                rmse = self.rmse(prediction_fields, truth_fields)
+                rows = pd.DataFrame({
+                    "initial_date": initial_date.strftime("%Y-%m-%dT%H:00:00"),
+                    "lead_time": lead_time,
+                    "field": fields,
+                    "model": self.model_name,
+                    "rmse": rmse,
+                })
+
+                self.scorecard_df = pd.concat([self.scorecard_df, rows], ignore_index=True)
+                counter += 1
+        
+        # save scores to csv
         self.save_scorecard_df()
