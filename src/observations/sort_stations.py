@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.7"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -14,18 +14,21 @@ def _():
 
     from scipy.interpolate import RBFInterpolator
     from scipy.spatial import cKDTree
-    return cKDTree, np, os, pd, xr
+
+    import matplotlib.pyplot as plt
+    return cKDTree, mo, np, os, pd, plt, xr
 
 
 @app.cell
 def _():
     obs_dir = '/scratch/juchar/eccc_data/'
-    return (obs_dir,)
+    local_dir = "../../data/eccc_data/"
+    return local_dir, obs_dir
 
 
 @app.cell
 def _(xr):
-    climatex_ds = xr.open_dataset('/scratch/juchar/prediction_data/bris-lam-inference-20230101T12-20230102T12.nc')
+    climatex_ds = xr.open_dataset('../../data/prediction_data/bris-lam-inference-20230101T12-20230102T12.nc')
     wrf_ds = xr.open_dataset('../../data/wrf_data/wrfout_d02_processed_23012000.nc')
     return climatex_ds, wrf_ds
 
@@ -70,9 +73,67 @@ def _(clip_stations, obs_dir, os, pd, src_coords, tgt_coords):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    # Merge into a single DataFrame
+    """)
+    return
+
+
+@app.cell
+def _(local_dir, os, pd):
+    dfs = []
+
+    for file in os.listdir(local_dir):
+        if file.startswith('clipped_eccc'):
+            # print(f" ⚡️ file : {file}")
+            df_temp = pd.read_csv(f"{local_dir}/{file}").drop(columns=['Unnamed: 0'])
+            dfs.append(df_temp)
+
+    final_df = pd.concat(dfs, ignore_index=True)
+    final_df.to_csv(f"{local_dir}/all_eccc_data.csv", index=False)
+    final_df
+    return
+
+
+@app.cell
+def _(local_dir, pd):
+    df = pd.read_csv(f"{local_dir}/all_eccc_data.csv")
+    df
+    return (df,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    # Exploratory data analysis
+    """)
+    return
+
+
+@app.cell
+def _(df, np, plt):
+    columns = ['TEMP', 'PRECIP_AMOUNT', 'WIND_SPEED']
+
+    for col in columns:
+        print(f"{col}")
+        print(' - max : ', np.nanmax(df[col]))
+        print(' - min : ', np.nanmin(df[col]))
+        print(' - mean : ', np.nanmean(df[col]))
+        print(' - median : ', np.nanmedian(df[col]))
+        print(' - std : ', np.nanstd(df[col]))
+
+        if col=='PRECIP_AMOUNT':
+            df[col].hist(bins=200, log=True)
+        else:
+            df[col].hist(bins=200)
+        plt.title(f"ECCC data distribution - {col}")
+        plt.show()
+    return
+
+
+@app.cell
 def _():
-
-
     return
 
 
