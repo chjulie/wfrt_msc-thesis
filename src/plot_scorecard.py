@@ -1,22 +1,40 @@
 import marimo
 
+<<<<<<< HEAD
 __generated_with = "0.18.0"
+=======
+__generated_with = "0.17.7"
+>>>>>>> f483274a75fcadea6007ef89ce4753ad4e005d16
 app = marimo.App(width="medium")
 
 
 @app.cell
 def _():
     import marimo as mo
+<<<<<<< HEAD
     import matplotlib.pyplot as plt
     from matplotlib import rc
     import numpy as np
     import pandas as pd
     from datetime import datetime
     return mo, pd, plt, rc
+=======
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib import rc
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import warnings
+
+    from utils.data_constants import ERROR_DATA_DIR
+    return ERROR_DATA_DIR, pd, plt, rc
+>>>>>>> f483274a75fcadea6007ef89ce4753ad4e005d16
 
 
 @app.cell
 def _(plt, rc):
+<<<<<<< HEAD
     rc("text", usetex=False)
     #rc("font", **{"family": "serif", "serif": ["Computer Modern Roman"], "size": "12"})
     rc("lines", linewidth=2)
@@ -168,10 +186,33 @@ def _(mo):
     # Explore variability of prediction
     Same as before, but add thin line to get an idea of the spread of distribution
     """)
+=======
+    rc("font", **{"family": "serif", "serif": ["Times New Roman"], "size": "14"})
+    rc("text", usetex=True)
+    rc("lines", linewidth=2)
+    plt.rcParams["axes.facecolor"] = "w"
+    plt.rcParams['axes.grid'] = True 
+    plt.rcParams["grid.linewidth"] = 0.2 
+
+    temp_color = "#CA1634"
+    precip_color = "#0B84AD"
+    wind_color = "#FFC247"#"#CABC53"
+
+    color_dict = {
+        '2t': "#CA1634",
+        'tp': "#0B84AD",
+        '10ff': "#FFC247"
+    }
+
+    nwp_reg_color = "#A61166"
+    dl_reg_color = "#F26419"
+    dl_glob_color = "#54A085" #A5E972
+>>>>>>> f483274a75fcadea6007ef89ce4753ad4e005d16
     return
 
 
 @app.cell
+<<<<<<< HEAD
 def _(df_bris, df_stage_c, field):
     d = df_bris.initial_date.unique()[0]
     print(d)
@@ -207,6 +248,12 @@ def _(fields, lead_times, models, plt):
 
 
     _()
+=======
+def _(ERROR_DATA_DIR, pd):
+    file_name = 'scorecard-nwp_reg-20230306_20230306.csv'
+    error_df = pd.read_csv(f"../{ERROR_DATA_DIR}/{file_name}").drop(columns=['Unnamed: 0'])
+    error_df
+>>>>>>> f483274a75fcadea6007ef89ce4753ad4e005d16
     return
 
 
