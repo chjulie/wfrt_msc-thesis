@@ -6,7 +6,7 @@
 #SBATCH --account=nn10090k
 #SBATCH --partition=accel
 #SBATCH --gpus=1
-#SBATCH --time=16:00:00
+#SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=32    # All CPU cores of one Grace-Hopper card
 #SBATCH --mem=100G    # Amount of CPU memory
 #SBATCH --output=../logs/scorecard_logs/scorecard_%j.out
