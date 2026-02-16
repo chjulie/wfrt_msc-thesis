@@ -67,7 +67,7 @@ class ScorecardEvaluator(ABC):
         self.current_initial_date = None
         self.current_lead_time = None
         self.scorecard_df = pd.DataFrame(
-            columns=["initial_date", "lead_time", "field", "model", "rmse", "mae"]
+            columns=["initial_date", "lead_time", "field", "model", "rmse", "mse"]
         )
 
         self.system = system
@@ -198,7 +198,7 @@ class ScorecardEvaluator(ABC):
         self.scorecard_df.to_csv(
             f"{ERROR_DATA_DIR}/scorecard-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv"
         )
-        print(f" [INFO] ✅ Saved Dataframe to csv at path : {ERROR_DATA_DIR}/scorecard_mae-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
+        print(f" [INFO] ✅ Saved Dataframe to csv at path : {ERROR_DATA_DIR}/scorecard-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
 
 
 class RegNWPScorecardEvaluator(ScorecardEvaluator):
@@ -254,16 +254,16 @@ class RegNWPScorecardEvaluator(ScorecardEvaluator):
         return rmse
     @staticmethod
 
-    def mae(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
+    def mse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
         array1, array2 = np.asarray(array1), np.asarray(array2)
         assert array1.shape == array2.shape, "Both arrays must have the same shape"
         assert (
             array1.ndim == 1 and array2.ndim == 1
         ), "Both arrays must be one-dimensional"
 
-        mae = np.abs(array1-array2).mean()
+        mse = np.power(array1 - array2, 2).mean()
 
-        return mae
+        return mse
     
     def clip_domain(self):
         prediction_ds = xr.open_dataset('/scratch/juchar/prediction_data/20220701T00.nc')
@@ -384,7 +384,7 @@ class RegNWPScorecardEvaluator(ScorecardEvaluator):
                     # print(f" [INFO] truth_field.shape : {truth_field.shape}")
 
                     rmse = self.rmse(wrf_field, truth_field)
-                    mae = self.mae(wrf_field, truth_field)
+                    mse = self.mse(wrf_field, truth_field)
                     print(f" [INFO] rmse for field {field} : {rmse}")
                     self.scorecard_df.loc[len(self.scorecard_df)] = [
                         initial_date.strftime("%Y-%m-%dT%H:00:00"),
@@ -392,7 +392,7 @@ class RegNWPScorecardEvaluator(ScorecardEvaluator):
                         field,
                         self.model_name,
                         rmse,
-                        mae,
+                        mse,
                     ]
                     # print(f" field : {field}, rmse : {rmse.values}")
                     counter += 1
@@ -436,13 +436,13 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
         return rmse
 
     @staticmethod
-    def mae(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
+    def mse(array1: xr.DataArray | np.ndarray, array2: xr.DataArray | np.ndarray):
         array1, array2 = np.asarray(array1), np.asarray(array2)
         assert array1.shape == array2.shape, "Both arrays must have the same shape"
 
-        mae = np.abs(array1-array2).mean(axis=1)
+        mse = np.power(array1-array2, 2).mean(axis=1)
 
-        return mae
+        return mse
     
 
     def clip_domain(self):
@@ -518,14 +518,14 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
                 prediction_fields = raw_prediction_fields.squeeze()[...,prediction_mask]    
 
                 rmse = self.rmse(prediction_fields, truth_fields)
-                mae = self.mae(prediction_fields, truth_fields)
+                mse = self.mse(prediction_fields, truth_fields)
                 rows = pd.DataFrame({
                     "initial_date": initial_date.strftime("%Y-%m-%dT%H:00:00"),
                     "lead_time": lead_time,
                     "field": fields,
                     "model": self.model_name,
                     "rmse": rmse,
-                    "mae": mae,
+                    "mse": mse,
                 })
 
                 self.scorecard_df = pd.concat([self.scorecard_df, rows], ignore_index=True)

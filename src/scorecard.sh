@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# run with : sbatch src/scorecard.sh 2022-07-01 2022-12-31 stage-c olivia
+# run with : sbatch src/scorecard.sh 2022-07-01 2022-07-02 stage-c olivia
 
 #SBATCH --job-name=scorecard
 #SBATCH --account=nn10090k
