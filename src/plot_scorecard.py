@@ -98,13 +98,13 @@ def _(folder, pd):
         gr_stage_d4 = df_stage_d4.groupby(by=["lead_time", "field"])[["rmse","mse"]].agg("mean")
 
         return df_stage_c, df_stage_d2, df_stage_d3, df_stage_d4, gr_stage_c, gr_stage_d2, gr_stage_d3, gr_stage_d4
-    return
+    return (load_validation_data,)
 
 
 @app.cell
 def _(folder, pd):
     def load_test_data():
-        df_nwp = pd.read_csv(f"{folder}/scorecard-nwp_reg-24h-20230101_20231231.csv").drop(
+        df_nwp = pd.read_csv(f"{folder}/scorecard-nwp_reg-20230101_20231231.csv").drop(
             columns=["Unnamed: 0"]
         )
         df_dl = pd.read_csv(f"{folder}/scorecard-stage-c-20230101_20231231.csv").drop(
@@ -115,57 +115,55 @@ def _(folder, pd):
         gr_dl = df_dl.groupby(by=["lead_time", "field"])[["rmse","mse"]].agg("mean")
 
         return df_nwp, df_dl, gr_nwp, gr_dl
-    return
+    return (load_test_data,)
 
 
-app._unparsable_cell(
-    r"""
+@app.cell
+def _(load_test_data, load_validation_data, period):
     if period=='validation':
         df_stage_c, df_stage_d2, df_stage_d3, df_stage_d4, gr_stage_c, gr_stage_d2, gr_stage_d3, gr_stage_d4 = load_validation_data()
         models = {
             #'bris' : {
             #    'data' : gr_bris,
             # },
-            \"stage-c\": {
-                \"data_grouped\": gr_stage_c,
-                \"data\": df_stage_c,
-                \"color\": \"cornflowerblue\",
+            "stage-c": {
+                "data_grouped": gr_stage_c,
+                "data": df_stage_c,
+                "color": "cornflowerblue",
             },
-            \"stage-d2\": {
-                \"data_grouped\": gr_stage_d2,
-                \"data\": df_stage_d2,
-                \"color\": \"orange\",
+            "stage-d2": {
+                "data_grouped": gr_stage_d2,
+                "data": df_stage_d2,
+                "color": "orange",
             },
-            \"stage-d3\": {
-                \"data_grouped\": gr_stage_d3,
-                \"data\": df_stage_d3,
-                \"color\": \"mediumseagreen\",
+            "stage-d3": {
+                "data_grouped": gr_stage_d3,
+                "data": df_stage_d3,
+                "color": "mediumseagreen",
             },
-            \"stage-d4\": {
-                \"data_grouped\": gr_stage_d4,
-                \"data\": df_stage_d4,
-                \"color\": \"crimson\",
+            "stage-d4": {
+                "data_grouped": gr_stage_d4,
+                "data": df_stage_d4,
+                "color": "crimson",
             },
         }
     elif period=='test':
         df_nwp, df_dl, gr_nwp, gr_dl = load_test_data()
         models = {
-            \"nwp_reg\": {
-                \"data_grouped\": gr_nwp,
-                \"data\": df_nwp,
-                \"color\": \"#A61166\",
+            "nwp_reg": {
+                "data_grouped": gr_nwp,
+                "data": df_nwp,
+                "color": "#A61166",
             },
-            \"dl_reg\": {
-                \"data_grouped\": gr_dl[gr_dl.loc[]],
-                \"data\": df_dl,
-                \"color\": \"#F26419\"
+            "dl_reg": {
+                "data_grouped": gr_dl,
+                "data": df_dl,
+                "color": "#F26419"
             }
         }
     else:
         raise NotImplementedError
-    """,
-    name="_"
-)
+    return gr_dl, gr_nwp, models
 
 
 @app.cell
@@ -175,15 +173,16 @@ def _(models):
 
 
 @app.cell
-def _(fields, lead_times, metric, models, period, plt):
+def _(fields, metric, models, period, plt):
     for field in fields:
         fig, ax = plt.subplots(figsize=(10, 8))
 
         for model in models.keys():
             df = models[model]["data_grouped"]
+            lt = sorted(list(set([x[0] for x in df.index])))
             ax.plot(
-                lead_times,
-                df[metric].loc[[6,12,18,24], field],
+                lt,
+                df[metric].loc[:, field],
                 ".-",
                 color=models[model]["color"],
                 label=model,
@@ -191,7 +190,7 @@ def _(fields, lead_times, metric, models, period, plt):
 
         ax.legend(loc="upper left")
         ax.grid()
-        ax.set_xticks(lead_times)
+        ax.set_xticks(lt)
         ax.set_ylabel(metric)
         ax.set_xlabel("Lead time")
         ax.set_title(f"Model stages comparison for field {field}")
@@ -298,7 +297,7 @@ def _(np):
         '10v',
         'tp', 
     ]
-    scorecard_lt = np.arange(6,25,6)
+    scorecard_lt = np.arange(6,85,6)
     return scorecard_fields, scorecard_lt
 
 
@@ -310,14 +309,14 @@ def _(scorecard_lt):
 
 @app.cell
 def _(gr_dl, gr_nwp, metric, np, scorecard_fields, scorecard_lt):
-    processed_scorecard = np.zeros((len(scorecard_fields), len(scorecard_lt)))
+    processed_scorecard = np.zeros((2*len(scorecard_fields), len(scorecard_lt)))
 
     for i,f in enumerate(scorecard_fields):
-        for j, lt in enumerate(scorecard_lt):
-            nwp_val = gr_nwp[metric].loc[lt, f]
-            dl_val = gr_dl[metric].loc[lt, f]
+        for j, s_lt in enumerate(scorecard_lt):
+            nwp_val = gr_nwp[metric].loc[s_lt, f]
+            dl_val = gr_dl[metric].loc[s_lt, f]
             norm_diff = (nwp_val - dl_val) / nwp_val
-            processed_scorecard[i,j] = norm_diff
+            processed_scorecard[2*i+1,j] = norm_diff
 
     np.savetxt('reports/data/processed_scorecard.csv',processed_scorecard, delimiter=',', fmt='%4f')
     return (processed_scorecard,)

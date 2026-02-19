@@ -11,13 +11,13 @@ def _():
     import xarray as xr
     import pandas as pd
     import os
+    from datetime import datetime
 
     from scipy.interpolate import RBFInterpolator
     from scipy.spatial import cKDTree
 
     import matplotlib.pyplot as plt
-
-    return cKDTree, mo, np, os, pd, plt, xr
+    return cKDTree, datetime, mo, np, os, pd, plt, xr
 
 
 @app.cell
@@ -67,7 +67,6 @@ def _(cKDTree, np):
         )
 
         return src_near & tgt_near
-
     return (clip_stations,)
 
 
@@ -93,7 +92,7 @@ def _(clip_stations, obs_dir, os, pd, src_coords, tgt_coords):
 
             clipped_stations = obs_df[mask].copy()
             clipped_stations.to_csv(f"{obs_dir}/clipped_{obs_file}")
-    return (obs_file,)
+    return mask, obs_file
 
 
 @app.cell
@@ -106,11 +105,9 @@ def _(obs_dir, obs_file, os):
 
 @app.cell
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     # Merge into a single DataFrame
-    """
-    )
+    """)
     return
 
 
@@ -138,12 +135,46 @@ def _(local_dir, pd):
 
 
 @app.cell
+def _(df):
+    print(df.UTC_DATE)
+    print(type(df.UTC_DATE[0]))
+    print(df.UTC_DATE[0])
+    return
+
+
+@app.cell
+def _(datetime, df):
+    df['datetime'] = df['UTC_DATE'].apply(lambda x : datetime.strptime(x, '%Y-%m-%d %H:%M:%S+00:00'))
+    df['datetime']
+    return
+
+
+@app.cell
+def _(df):
+    print(df.datetime.values)
+    return
+
+
+@app.cell
+def _(df):
+    init_hours = [00, 6, 12, 18]
+    mask = df['datetime'].apply(lambda x: x.hour in init_hours)
+    print(mask)
+    return (mask,)
+
+
+@app.cell
+def _(df, mask):
+    df_init = df[mask]
+    df_init
+    return
+
+
+@app.cell
 def _(mo):
-    mo.md(
-        r"""
+    mo.md(r"""
     # Exploratory data analysis
-    """
-    )
+    """)
     return
 
 
@@ -165,6 +196,15 @@ def _(df, np, plt):
             df[col].hist(bins=200)
         plt.title(f"ECCC data distribution - {col}")
         plt.show()
+    return
+
+
+@app.cell
+def _(df, plt):
+    # Cut precip outliers
+    precip_amount_capped = df[df['PRECIP_AMOUNT'] < 70]['PRECIP_AMOUNT']
+    precip_amount_capped.hist(bins=200, log=True)
+    plt.show()
     return
 
 
