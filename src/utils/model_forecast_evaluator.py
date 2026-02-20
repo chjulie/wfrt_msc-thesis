@@ -61,6 +61,8 @@ class ModelEvaluator(ABC):
                 "station_id",
                 "field",
                 "rmse",
+                "obs_value",
+                "pred_value",
             ]
         )
 
@@ -71,6 +73,9 @@ class ModelEvaluator(ABC):
         self.current_lead_time = None
         self.current_field = None
         self.model_resampled_data = None
+        self.obs_data_df = pd.read_csv('/scratch/juchar/observations/processed_eccc_bch_obs.csv', converters={
+            'UTC_DATE': lambda x : x[:-6]
+        }).drop(columns=["Unnamed: 0"])
         self.current_obs_data_df = None
 
     @property
@@ -98,29 +103,18 @@ class ModelEvaluator(ABC):
         )
 
     def get_station_observation(self, obs_folder_path):
-        obs_file_path = f"{obs_folder_path}/clipped_eccc_{self.current_datetime.strftime('%Y-%m-%dT%H:%M:%S')}.csv"
-        obs_df = pd.read_csv(
-            obs_file_path,
-            converters={
-                "UTC_DATE": lambda x: pd.to_datetime(
-                    x, format="%Y-%m-%d %H:%M:%S+00:00"
-                ).tz_localize("utc")
-            },
-        ).drop(columns=["Unnamed: 0"])
+        # Get station data
+        self.current_obs_data_df = self.obs_data_df[
+            self.obs_data_df.UTC_DATE == self.current_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        ]  
 
         # Get station localisation
-        s_longitudes = obs_df.x.values
-        s_latitudes = obs_df.y.values
+        s_longitudes = self.current_obs_data_df.x.values
+        s_latitudes = self.current_obs_data_df.y.values
         self.stations_coords = np.column_stack((s_longitudes, s_latitudes))
-
-        # Get station data
-        self.current_obs_data_df = obs_df[
-            obs_df.UTC_DATE == self.current_datetime.tz_localize("utc")
-        ]  # TODO: check that this work (or add localization)
 
     def rmse(self, field: str):
         field_obs = OBS_EVAL_FIELDS.get(field)
-
         if field == "2t":
             # TODO : convert obs to kelvin
             observations = (
@@ -144,9 +138,10 @@ class ModelEvaluator(ABC):
                 "y": self.current_obs_data_df["y"],
                 "field": field,
                 "rmse": rmse,
+                "obs_value": observations,
+                "pred_value": self.model_resampled_data,
             }
         )
-
         # append to existing error df
         self.error_df = pd.concat((self.error_df, df), axis=0)
 
@@ -174,11 +169,12 @@ class ModelEvaluator(ABC):
         self.model_resampled_data = resampled_data
 
     def save_error_df(self):
-        if self.system == "Fir":
+        if self.system == "fir":
             self.error_df.to_csv(
                 f"{ERROR_DATA_DIR}/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv"
             )
-        elif self.system == "Olivia":
+            print(f" Saved error data at path : {ERROR_DATA_DIR}/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
+        elif self.system == "olivia":
             self.error_df.to_csv(
                 f"{OLIVIA_GROUP_SCRATCH}/results/juchar/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv"
             )
@@ -264,7 +260,6 @@ class RegNWPModelEvaluator(ModelEvaluator):
                 for field_mod, field_obs in OBS_EVAL_FIELDS.items():
                     try:
                         xtime = self.xtime(initial_date, lead_time)
-                        print(f" - xtime: {xtime}")
                         field_data = self.ds[field_mod].sel(
                             XTIME=self.xtime(initial_date, lead_time)
                         )
