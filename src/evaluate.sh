@@ -1,20 +1,34 @@
-#!/bin/sh -l
-### Example usage: sbatch src/evaluate.sh 2023-01-01 2023-12-31 nwp_reg fir
+#!/bin/bash
 
-#SBATCH --account=rrg-rstull
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=1 # Allows us to set optimal "threads" value in our configuration.json file to have multi-threaded data processing
-#SBATCH --mem-per-cpu=64G ##total requested cpu memory => must be large enough for anemoi-datasets create!! 64G = 10 days, 
-#SBATCH --time=06:00:00
-#SBATCH --output=./logs/evaluate_%j.out
+# run with : sbatch src/evaluate.sh 2023-01-01 2023-02-01 stage-c olivia
 
-source .venv/bin/activate
-# prepare log file
-START_DATE=$(printf '%s' "$1")
-END_DATE=$(printf '%s' "$2")
-MODEL=$(printf '%s' "$3")
+#SBATCH --job-name=evaluate
+#SBATCH --account=nn10090k
+#SBATCH --partition=accel
+#SBATCH --gpus=1
+#SBATCH --time=04:00:00
+#SBATCH --cpus-per-task=32    # All CPU cores of one Grace-Hopper card
+#SBATCH --mem=100G    # Amount of CPU memory
+#SBATCH --output=../logs/evaluate_logs/evaluate_%j.out
+
+START=$(printf '%s' "$1")
+END=$(printf '%s' "$2")
+MODEL=$(printf '%s' "$3")   # models : global, bris, stage-c, stage-d2/3/4
 SYSTEM=$(printf '%s' "$4")
 
-uv run src/evaluate.py --start_date "${START_DATE}" --end_date "${END_DATE}" --model "${MODEL}" --system "${SYSTEM}"
-echo " ✅  Script finished."
+CONTAINER_PATH=/cluster/projects/nn10090k/wfrt-anemoi_container/wfrt-anemoi_container.sif
+BIND_DIRS=/nird/datapeak/NS10090K,$HOME/anemoi-wfrt,/cluster/projects/nn10090k 
+PYSCRIPT="src/evaluate.py --start_date ${START} --end_date ${END} --model ${MODEL} --system ${SYSTEM}"
+
+GPU_LOG_FILE="gpu_utilization_multinode_container.log"
+echo "Starting GPU utilization monitoring..."
+nvidia-smi --query-gpu=timestamp,index,name,utilization.gpu,utilization.memory,memory.total,memory.used --format=csv -l 5 > $GPU_LOG_FILE &
+
+echo "Executing apptainer exec --nv --bind $BIND_DIRS $CONTAINER_PATH python $PYSCRIPT"
+apptainer exec --nv --bind $BIND_DIRS $CONTAINER_PATH python $PYSCRIPT
+
+echo "Program finished successfully!"
+# Stop GPU utilization monitoring
+pkill -f "nvidia-smi --query-gpu"
+
+sacct -j $SLURM_JOBID

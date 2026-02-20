@@ -26,7 +26,7 @@ def model_evaluator_factory(
     system: str,
 ):
 
-    if (model_name == "dl_reg") or (model_name == "dl_glob"):
+    if ('stage-' in model_name) | ('bris' in model_name) | ('global' in model_name):
         evaluator = DLModelEvaluator(
             date_range=date_range,
             lead_times=lead_times,
@@ -73,7 +73,13 @@ class ModelEvaluator(ABC):
         self.current_lead_time = None
         self.current_field = None
         self.model_resampled_data = None
-        self.obs_data_df = pd.read_csv('/scratch/juchar/observations/processed_eccc_bch_obs.csv', converters={
+        if self.system == 'fir':
+            obs_path = '/scratch/juchar/observations/'
+        elif self.system == 'olivia':
+            obs_path = '/cluster/projects/nn10090k/datasets/ECCC_OBS/'
+        else:
+            raise NotImplementedError
+        self.obs_data_df = pd.read_csv(f"{obs_path}processed_eccc_bch_obs.csv", converters={
             'UTC_DATE': lambda x : x[:-6]
         }).drop(columns=["Unnamed: 0"])
         self.current_obs_data_df = None
@@ -102,7 +108,7 @@ class ModelEvaluator(ABC):
             a + pd.Timedelta(hours=int(b)), format="%Y-%m-%dT%H:00:00.000000000"
         )
 
-    def get_station_observation(self, obs_folder_path):
+    def get_station_observation(self):
         # Get station data
         self.current_obs_data_df = self.obs_data_df[
             self.obs_data_df.UTC_DATE == self.current_datetime.strftime('%Y-%m-%d %H:%M:%S')
@@ -173,11 +179,12 @@ class ModelEvaluator(ABC):
             self.error_df.to_csv(
                 f"{ERROR_DATA_DIR}/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv"
             )
-            print(f" Saved error data at path : {ERROR_DATA_DIR}/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
+            print(f" [INFO] Saved error data at path : {ERROR_DATA_DIR}/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
         elif self.system == "olivia":
             self.error_df.to_csv(
                 f"{OLIVIA_GROUP_SCRATCH}/results/juchar/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv"
             )
+            print(f" [INFO] Saved error data at path : {OLIVIA_GROUP_SCRATCH}/results/juchar/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
         else:
             raise NotImplementedError
 
@@ -222,7 +229,7 @@ class RegNWPModelEvaluator(ModelEvaluator):
     def evaluate(self):
 
         for initial_date in self.date_range:
-            print(f"⚡️ date: {initial_date}", flush=True)
+            print(f" [INFO] ⚡️ initial date: {initial_date}", flush=True)
             self.current_initial_date = initial_date
             self.run_id = initial_date.strftime("%y%m%d%H")
 
@@ -253,9 +260,7 @@ class RegNWPModelEvaluator(ModelEvaluator):
 
             for lead_time in EVAL_LEAD_TIMES:
                 self.current_lead_time = lead_time
-                self.get_station_observation(
-                    obs_folder_path=f"{FIR_SCRATCH}/eccc_data/"
-                )  # one DF for one lead time
+                self.get_station_observation()
 
                 for field_mod, field_obs in OBS_EVAL_FIELDS.items():
                     try:
@@ -301,10 +306,10 @@ class DLModelEvaluator(ModelEvaluator):
             system=system,
         )
 
-        self.forecast_folder = {
-            "dl_glob": f"/cluster/projects/nn10090k/results/juchar/global-lam-inference",
-            "dl_reg": f"/cluster/projects/nn10090k/results/juchar/climatex-lam-inference",
-        }
+        self.forecast_folder = (
+            f"/cluster/projects/nn10090k/results/juchar/{model_name}-lam-inference"
+        )
+        print(f" [INFO] Looking for inference results in {self.forecast_folder}")
         self.forecast_ds = None
 
     @property
@@ -317,19 +322,27 @@ class DLModelEvaluator(ModelEvaluator):
         )
 
     def evaluate(self):
+
         for initial_date in self.date_range:
-            print(f"⚡️ date: {initial_date}", flush=True)
+            print(f" [INFO] ⚡️ initial date: {initial_date}", flush=True)
             self.current_initial_date = initial_date
 
-            self.forecast_ds = xr.open_dataset(
-                f"{self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc"
-            )
+            try:
+                self.forecast_ds = xr.open_dataset(
+                    f"{self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc",
+                    engine="netcdf4"
+                )   # inference folder, file for that specific initial date
+                print(f" [INFO] Opened inference data at path {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc")
+            except FileNotFoundError as e:
+                print(
+                    f"⚠️ [WARNING] Error when opening inference data : {e}.",
+                    flush=True,
+                )
+                continue
 
             for lead_time in EVAL_LEAD_TIMES:
                 self.current_lead_time = lead_time
-                self.get_station_observation(
-                    obs_folder_path=f"{OLIVIA_GROUP_SCRATCH}/datasets/ECCC_OBS"
-                )
+                self.get_station_observation()
 
                 for field_mod, field_obs in OBS_EVAL_FIELDS.items():
 
