@@ -92,7 +92,7 @@ def _(clip_stations, obs_dir, os, pd, src_coords, tgt_coords):
 
             clipped_stations = obs_df[mask].copy()
             clipped_stations.to_csv(f"{obs_dir}/clipped_{obs_file}")
-    return (obs_file,)
+    return mask, obs_file
 
 
 @app.cell
@@ -135,6 +135,42 @@ def _(local_dir, pd):
 
 
 @app.cell
+def _(df):
+    print(df.UTC_DATE)
+    print(type(df.UTC_DATE[0]))
+    print(df.UTC_DATE[0])
+    return
+
+
+@app.cell
+def _(datetime, df):
+    df['datetime'] = df['UTC_DATE'].apply(lambda x : datetime.strptime(x, '%Y-%m-%d %H:%M:%S+00:00'))
+    df['datetime']
+    return
+
+
+@app.cell
+def _(df):
+    print(df.datetime.values)
+    return
+
+
+@app.cell
+def _(df):
+    init_hours = [00, 6, 12, 18]
+    mask = df['datetime'].apply(lambda x: x.hour in init_hours)
+    print(mask)
+    return (mask,)
+
+
+@app.cell
+def _(df, mask):
+    df_init = df[mask]
+    df_init
+    return
+
+
+@app.cell
 def _(mo):
     mo.md(r"""
     # Exploratory data analysis
@@ -164,6 +200,7 @@ def _(df, np, plt):
 
 
 @app.cell
+<<<<<<< HEAD
 def _(mo):
     mo.md(r"""
     # Process precipitations
@@ -235,6 +272,13 @@ def _(df_init, get_6h_precip):
         axis=1
     )
     df_init['6h_precip']
+=======
+def _(df, plt):
+    # Cut precip outliers
+    precip_amount_capped = df[df['PRECIP_AMOUNT'] < 70]['PRECIP_AMOUNT']
+    precip_amount_capped.hist(bins=200, log=True)
+    plt.show()
+>>>>>>> d2ae8f231c95178d1916674817ba398d626e54da
     return
 
 
