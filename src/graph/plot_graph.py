@@ -13,7 +13,7 @@ def plot_cutout(
     nodes: np.ndarray,
 ):
     fig, ax = plt.subplots(
-        figsize=(20, 10),
+        figsize=(10, 10),
         subplot_kw={"projection": projection},
     )
     warnings.filterwarnings(
@@ -33,13 +33,13 @@ def plot_cutout(
         transform=ccrs.PlateCarree(),
         color="#CA1634",
     )
-
+    # plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     plt.savefig(
         f"../../reports/plots/graph/cutout.svg",
         format="svg",
         bbox_inches="tight",
     )
-    plt.savefig(f"../../reports/plots/graph/cutout.png", dpi=600, bbox_inches="tight")
+    plt.savefig(f"../../reports/plots/graph/cutout.png", dpi=600, pad_inches=0.3)
 
 
 if __name__ == "__main__":
