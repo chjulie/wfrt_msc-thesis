@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.0"
+__generated_with = "0.17.7"
 app = marimo.App(width="medium")
 
 
@@ -22,7 +22,7 @@ def _():
 
 @app.cell
 def _():
-    obs_dir = "/scratch/juchar/eccc_data/"
+    obs_dir = "/scratch/juchar/eccc_precip_data/"
     local_dir = "../../data/eccc_data/"
     return local_dir, obs_dir
 
@@ -73,7 +73,7 @@ def _(cKDTree, np):
 @app.cell
 def _(clip_stations, obs_dir, os, pd, src_coords, tgt_coords):
     for obs_file in os.listdir(obs_dir):
-        if obs_file[:5] == "eccc_":
+        if obs_file.startswith("precip"):
             print(f" ⚡️ file : {obs_file}")
             obs_df = pd.read_csv(
                 f"{obs_dir}/{obs_file}",
@@ -112,17 +112,17 @@ def _(mo):
 
 
 @app.cell
-def _(local_dir, os, pd):
+def _(obs_dir, os, pd):
     dfs = []
 
-    for file in os.listdir(local_dir):
-        if file.startswith("clipped_eccc"):
+    for file in os.listdir(obs_dir):
+        if file.startswith("clipped_precip"):
             # print(f" ⚡️ file : {file}")
-            df_temp = pd.read_csv(f"{local_dir}/{file}").drop(columns=["Unnamed: 0"])
+            df_temp = pd.read_csv(f"{obs_dir}/{file}").drop(columns=["Unnamed: 0"])
             dfs.append(df_temp)
 
     final_df = pd.concat(dfs, ignore_index=True)
-    final_df.to_csv(f"{local_dir}/all_eccc_data.csv", index=False)
+    final_df.to_csv(f"{obs_dir}/all_eccc_precip_data.csv", index=False)
     final_df
     return
 
@@ -200,11 +200,85 @@ def _(df, np, plt):
 
 
 @app.cell
+<<<<<<< HEAD
+def _(mo):
+    mo.md(r"""
+    # Process precipitations
+    """)
+    return
+
+
+@app.cell
+def _(obs_dir, pd):
+    precip_df = pd.read_csv(f"{obs_dir}/all_eccc_precip_data.csv")
+    return (precip_df,)
+
+
+@app.cell
+def _(datetime, precip_df):
+    precip_df['datetime'] = precip_df['UTC_DATE'].apply(lambda x : datetime.strptime(x, '%Y-%m-%d %H:%M:%S+00:00'))
+    precip_df['datetime']
+    return
+
+
+@app.cell
+def _(precip_df):
+    init_hours = [00, 6, 12, 18]
+    init_mask = precip_df['datetime'].apply(lambda x: x.hour in init_hours)
+    df_init = precip_df[init_mask]
+    df_init
+    return (df_init,)
+
+
+@app.cell
+def _(np, pd, precip_df):
+    def get_6h_precip(x,y):
+        offsets = [pd.Timedelta(hours=i) for i in range(1,6)]
+        previous_dates = [x - off for off in  offsets]
+
+        total = 0
+        for prev in previous_dates:
+            prev_val = precip_df[(precip_df.datetime==prev) & (precip_df.STN_ID==y)]['PRECIP_AMOUNT'].values
+            if len(prev_val) != 1:
+                return np.nan
+            total+=prev_val[0]
+
+        return total
+
+    return (get_6h_precip,)
+
+
+@app.cell
+def _(df_init):
+    small_df = df_init.iloc[:10]
+    small_df
+    return (small_df,)
+
+
+@app.cell
+def _(get_6h_precip, small_df):
+    small_df['6h_precip'] = small_df.apply(
+        lambda row: get_6h_precip(row['datetime'], row['STN_ID']),
+        axis=1
+    )
+    small_df['6h_precip']
+    return
+
+
+@app.cell
+def _(df_init, get_6h_precip):
+    df_init['6h_precip'] = df_init.apply(
+        lambda row: get_6h_precip(row['datetime'], row['STN_ID']),
+        axis=1
+    )
+    df_init['6h_precip']
+=======
 def _(df, plt):
     # Cut precip outliers
     precip_amount_capped = df[df['PRECIP_AMOUNT'] < 70]['PRECIP_AMOUNT']
     precip_amount_capped.hist(bins=200, log=True)
     plt.show()
+>>>>>>> d2ae8f231c95178d1916674817ba398d626e54da
     return
 
 

@@ -82,7 +82,7 @@ class ScorecardEvaluator(ABC):
                 f"/nird/datapeak/NS10090K/datasets/climatex/anemoi-climatex-training-6h-20190601-20231231.zarr",
                 engine="zarr",
             )
-            print(f" [INFO] Found ground truth dataset at path : /nird/datapeak/NS10090K/datasets/climatex/anemoi-climatex-training-6h-20230101-20231231.zarr")
+            print(f" [INFO] Found ground truth dataset at path : /nird/datapeak/NS10090K/datasets/climatex/anemoi-climatex-training-6h-20190101-20231231.zarr")
         else: 
             raise NotImplementedError
 
@@ -509,7 +509,13 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
                     ensemble=0,
                 ) 
                 raw_truth_fields = raw_truth_fields.assign_coords(variable=fields)
-                raw_prediction_fields = self.forecast_ds[fields].sel(time=xtime).to_array(dim="variable")
+                try:
+                    raw_prediction_fields = self.forecast_ds[fields].sel(time=xtime).to_array(dim="variable")
+                except KeyError as e:
+                    print(
+                        f"⚠️ [WARNING] Lead time {lead_time} missing in inference data {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc.",
+                        flush=True,
+                    )
 
                 if counter == 0:
                     prediction_mask, climatex_mask = self.clip_domain()

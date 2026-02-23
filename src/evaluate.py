@@ -34,13 +34,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model", type=str, required=True, help="'dl_reg', 'nwp_reg' or 'dl_glob'."
     )
+    parser.add_argument(
+        "--system", type=str, required=True, help="'fir' or 'olivia'."
+    )
     args = parser.parse_args()
 
-    # # -----------------------------------------------------------------
-    ds = xr.open_dataset("/cluster/projects/nn10090k/results/juchar/climatex-lam-inference-20220701T00-20220715T18.nc")
-
-    print(' ** INITIAL_DATE : ', ds.initial_date.values)
-    print(' ** LEAD_TIME : ', ds.lead_time.values)
     # -----------------------------------------------------------------
 
     date_range = pd.date_range(
@@ -53,7 +51,7 @@ if __name__ == "__main__":
         model_name=args.model,
         date_range=date_range,
         lead_times=EVAL_LEAD_TIMES,
-        system='Olivia'
+        system=args.system,
     )
 
     print(" > Starting evaluation", flush=True)
