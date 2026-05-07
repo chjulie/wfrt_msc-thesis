@@ -209,6 +209,7 @@ class ModelEvaluator(ABC):
             )
             print(f" [INFO] Saved error data at path : {ERROR_DATA_DIR}/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv")
         elif self.system == "olivia":
+            # Change saving path !!
             self.error_df.to_csv(
                 f"{OLIVIA_GROUP_SCRATCH}/results/juchar/errors-{self.model_name}-{self.date_range[0].strftime('%Y%m%d')}_{self.date_range[-1].strftime('%Y%m%d')}.csv"
             )
@@ -248,7 +249,8 @@ class RegNWPModelEvaluator(ModelEvaluator):
         )
 
     def rclone_copy(self):
-        source = f"wfrt-nextcloud:Documents/WRF-forecasts/{self.model_id}/wrfout_d02_processed_{self.run_id}.nc"
+        # Modify source if rclone config is not name "wfrt-nextcloud" + check that this works with the shared folder
+        source = f"wfrt-nextcloud:Share_anemoi/WRF-forecasts/{self.model_id}/wrfout_d02_processed_{self.run_id}.nc"
         # cmd = f"rclone copy '{source}' '{self.local_folder_path}'"# --progress"
 
         cmd = ["rclone", "copy", source, self.local_folder_path, "--checksum"]
