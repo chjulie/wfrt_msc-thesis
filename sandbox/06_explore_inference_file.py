@@ -87,7 +87,7 @@ if __name__ == "__main__":
         "--field",
         type=str,
         required=True,
-        help="Start date of evaluation period, format: YYYY-mm-dd",
+        help="field",
     )
     args = parser.parse_args()
 
@@ -107,6 +107,7 @@ if __name__ == "__main__":
         "10u": "10u [m/s]",
         "10v": "10v [m/s]",
         "sp": "sp [HPa]",
+        "tp": "tp [mm]",
     }
     all_ds = [gt_ds, bris_ds, climatex_ds]  # [global_ds, bris_ds, climatex_ds]
     models = ["bris", "climatex"]

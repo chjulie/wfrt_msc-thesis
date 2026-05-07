@@ -92,7 +92,13 @@ if __name__ == "__main__":
     processed_variables = {}
     air_pressure = ds_wrfout.air_pressure / 100.0  # Pa to hPa
     grid = xgcm.Grid(ds_wrfout, periodic=False)
-    pressure_level_variables = ["U", "V", "geopotential", "air_potential_temperature"]
+    pressure_level_variables = [
+        "U",
+        "V",
+        "geopotential",
+        "air_potential_temperature",
+        "QVAPOR",
+    ]
 
     for var in pressure_level_variables:
         processed_variables[var] = interpolate_variable(
@@ -116,6 +122,10 @@ if __name__ == "__main__":
 
     acc_precip_6h = calculate_total_rain(ds_wrfout)
 
+    specific_humidity = mpcalc.specific_humidity_from_mixing_ratio(
+        quantify_variable(processed_variables["QVAPOR"], units("kg/kg"))
+    )
+
     dataset = xr.Dataset(
         {
             "geopotential": processed_variables["geopotential"],
@@ -129,6 +139,7 @@ if __name__ == "__main__":
             "2t": ds_wrfout["T2"],
             "msl": mean_sea_level_pressure,
             "tp": acc_precip_6h,
+            "q": specific_humidity,
         }
     )
 

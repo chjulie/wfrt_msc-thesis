@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.7"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium")
 
 
@@ -19,7 +19,7 @@ def _():
 @app.cell
 def _(plt, rc):
     rc("font", **{"family": "serif", "serif": ["Times New Roman"], "size": "14"})
-    rc("text", usetex=True)
+    rc("text", usetex=False)
     rc("lines", linewidth=2)
     plt.rcParams["axes.facecolor"] = "w"
     plt.rcParams['axes.grid'] = True 
@@ -33,7 +33,18 @@ def _(plt, rc):
 
 @app.cell
 def _(pd):
-    stations_statistics = pd.read_csv('data/eccc_data/clipped_stations_statistics.csv', index_col='STN_ID')
+    observations_df = pd.read_csv('data/processed_eccc_bch_obs.csv', converters={
+                'UTC_DATE': lambda x : x[:-6]
+            }).drop(columns=["Unnamed: 0"])
+    observations_df
+    return (observations_df,)
+
+
+@app.cell
+def _(observations_df):
+    stations_statistics = observations_df.groupby(by=['STN_ID','x','y'])[['TEMP', 'WIND_SPEED', 'PRECIP_AMOUNT']].agg(['size'])
+    stations_statistics = stations_statistics.reset_index(level=['x','y'])
+    stations_statistics.columns = ['_'.join(col).strip('_') for col in stations_statistics.columns]
     stations_statistics
     return (stations_statistics,)
 
@@ -81,15 +92,15 @@ def _(
                 ax.add_feature(cfeature.COASTLINE, zorder=2)
                 ax.add_feature(cfeature.BORDERS, linestyle=":", zorder=2)
 
-    sc0 = axs[0].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_TEMP, cmap=temp_cmap, edgecolors='black', linewidth=edge_lw, transform=ccrs.PlateCarree())
+    sc0 = axs[0].scatter(x=stations_statistics['x'], y=stations_statistics['y'], s=scatter_size, c=stations_statistics['TEMP_size'], cmap=temp_cmap, edgecolors='black', linewidth=edge_lw, transform=ccrs.PlateCarree())
     cbar = fig.colorbar(sc0, ax=axs[0], orientation="vertical", shrink=0.4, label="Number of observations")
     axs[0].set_title('Temperature observations')
 
-    sc1 = axs[1].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_PRECIP, edgecolors='black', linewidth=edge_lw, cmap=precip_cmap, transform=ccrs.PlateCarree())
+    sc1 = axs[1].scatter(x=stations_statistics['x'], y=stations_statistics['y'], s=scatter_size, c=stations_statistics['PRECIP_AMOUNT_size'], edgecolors='black', linewidth=edge_lw, cmap=precip_cmap, transform=ccrs.PlateCarree())
     cbar = fig.colorbar(sc1, ax=axs[1], orientation="vertical", shrink=0.4, label="Number of observations")
     axs[1].set_title('Precipitations observations')
 
-    sc2 = axs[2].scatter(x=stations_statistics.x, y=stations_statistics.y, s=scatter_size, c=stations_statistics.size_WIND, cmap=wind_cmap, edgecolors='black', linewidth=edge_lw, transform=ccrs.PlateCarree())
+    sc2 = axs[2].scatter(x=stations_statistics['x'], y=stations_statistics['y'], s=scatter_size, c=stations_statistics['WIND_SPEED_size'], cmap=wind_cmap, edgecolors='black', linewidth=edge_lw, transform=ccrs.PlateCarree())
     cbar = fig.colorbar(sc2, ax=axs[2], orientation="vertical", shrink=0.4, label="Number of observations")
     axs[2].set_title('Wind observations')
 
@@ -107,22 +118,18 @@ def _(mo):
 
 
 @app.cell
-def _(stations_statistics):
-    print(stations_statistics.index)
+def _(observations_df, pd):
+    eccc_df = observations_df[pd.to_numeric(observations_df["STN_ID"], errors="coerce").notna()]
+    print(' - unique stn : ', eccc_df['STN_ID'].nunique())
+    eccc_df.describe()
     return
 
 
 @app.cell
-def _(stations_statistics):
-    n_stations = stations_statistics.index.nunique()
-    n_temp_obs = stations_statistics['size_TEMP'].sum()
-    n_precip_obs = stations_statistics['size_PRECIP'].sum()
-    n_wind_obs = stations_statistics['size_WIND'].sum()
-
-    print(' - n_stations : ', n_stations)
-    print(' - n_temp_obs : ', n_temp_obs)
-    print(' - n_precip_obs : ', n_precip_obs)
-    print(' - n_wind_obs : ', n_wind_obs)
+def _(observations_df, pd):
+    bch_obs = observations_df[~pd.to_numeric(observations_df["STN_ID"], errors="coerce").notna()]
+    print(' - unique stn : ', bch_obs['STN_ID'].nunique())
+    bch_obs.describe()
     return
 
 

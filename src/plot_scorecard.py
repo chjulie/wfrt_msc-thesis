@@ -18,7 +18,7 @@ def _():
 @app.cell
 def _(plt, rc):
     rc("text", usetex=False)
-    # rc("font", **{"family": "serif", "serif": ["Computer Modern Roman"], "size": "12"})
+    rc("font", **{"family": "serif", "serif": ["Times New Roman"], "size": "12"})
     rc("lines", linewidth=2)
     plt.rcParams["axes.facecolor"] = "w"
     return
@@ -44,7 +44,7 @@ def _(mo):
 @app.cell
 def _():
     ## Define analysis
-    period = "test" # validation, test
+    period = "validation" # validation, test
     metric = "rmse" # "rmse", "mse"
     return metric, period
 
@@ -52,14 +52,14 @@ def _():
 @app.cell
 def _(pd):
     # Open csv files
-    folder = "data/error_data"
+    folder = "data/error_data/"
     df_bris = pd.read_csv(f"{folder}/scorecard-bris-20220701_20221231.csv").drop(
         columns=["Unnamed: 0"]
     )
-    fields = df_bris["field"].unique()
-    lead_times = df_bris["lead_time"].unique() # TODO: wrong for test period
-    df_bris
-    return df_bris, fields, folder, lead_times
+    #fields = df_bris["field"].unique()
+    #lead_times = df_bris["lead_time"].unique() # TODO: wrong for test period
+    #df_bris
+    return df_bris, folder
 
 
 @app.cell
@@ -67,29 +67,23 @@ def _(df_bris):
     # group by lead time and field, take mean rmse
     gr_bris = df_bris.groupby(by=["lead_time", "field"])[["rmse","mse"]].agg("mean")
     gr_bris
-    return (gr_bris,)
-
-
-@app.cell
-def _(gr_bris):
-    print(gr_bris["rmse"].loc[:,'10u'])
     return
 
 
 @app.cell
 def _(folder, pd):
     def load_validation_data():
-        df_stage_c = pd.read_csv(f"{folder}/scorecard-stage-c-20220701_20221231.csv").drop(
+        df_stage_c = pd.read_csv(f"{folder}/updated/scorecard-stage-c-20220701_20221231.csv").drop(
             columns=["Unnamed: 0"]
         )
         df_stage_d2 = pd.read_csv(
-            f"{folder}/scorecard-stage-d2-20220701_20221231.csv"
+            f"{folder}/updated/scorecard-stage-d2-20220701_20221231.csv"
         ).drop(columns=["Unnamed: 0"])
         df_stage_d3 = pd.read_csv(
-            f"{folder}/scorecard-stage-d3-20220701_20221231.csv"
+            f"{folder}/updated/scorecard-stage-d3-20220701_20221231.csv"
         ).drop(columns=["Unnamed: 0"])
         df_stage_d4 = pd.read_csv(
-            f"{folder}/scorecard-stage-d4-20220701_20221231.csv"
+            f"{folder}/updated/scorecard-stage-d4-20220701_20221231.csv"
         ).drop(columns=["Unnamed: 0"])
 
         gr_stage_c = df_stage_c.groupby(by=["lead_time", "field"])[["rmse","mse"]].agg("mean")
@@ -153,12 +147,12 @@ def _(load_test_data, load_validation_data, period):
             "nwp_reg": {
                 "data_grouped": gr_nwp,
                 "data": df_nwp,
-                "color": "#A61166",
+                "color": '#023047',#"#A61166",
             },
             "dl_reg": {
                 "data_grouped": gr_dl,
                 "data": df_dl,
-                "color": "#F26419"
+                "color": '#219ebc',  #"#F26419"
             }
         }
     else:
@@ -168,38 +162,64 @@ def _(load_test_data, load_validation_data, period):
 
 @app.cell
 def _(models):
-    print(models.keys())
-    return
+    print(list(models.keys()))
+
+    fields = models[list(models.keys())[0]]['data']['field'].unique()
+    print(fields)
+    return (fields,)
 
 
 @app.cell
-def _(fields, metric, models, period, plt):
+def _(folder, pd):
+    ds = pd.read_csv(f"{folder}/scorecard-stage-c-20230101_20231231.csv").drop(
+            columns=["Unnamed: 0"]
+        )
+    print(ds.initial_date.unique())
+    return
+
+
+app._unparsable_cell(
+    r"""
     for field in fields:
-        fig, ax = plt.subplots(figsize=(10, 8))
+        fig, ax = plt.subplots(figsize=(8, 6))
 
         for model in models.keys():
-            df = models[model]["data_grouped"]
+            df = models[model][\"data_grouped\"]
             lt = sorted(list(set([x[0] for x in df.index])))
             ax.plot(
-                lt,
-                df[metric].loc[:, field],
-                ".-",
-                color=models[model]["color"],
+                lt[1:],
+                df[metric].loc[1:, field],
+                \".-\",
+                color=models[model][\"color\"],
                 label=model,
             )
 
-        ax.legend(loc="upper left")
+        ax.legend(loc=\"upper left\")
         ax.grid()
         ax.set_xticks(lt)
-        ax.set_ylabel(metric)
-        ax.set_xlabel("Lead time")
-        ax.set_title(f"Model stages comparison for field {field}")
-        plt.savefig(
-            f"reports/plots/scorecard/{metric}_{period}_{field}.png",
-            bbox_inches="tight",
-            dpi=100,
-        )
+        ax.set_ylabel(f\"RMSE {}\")
+        ax.set_xlabel(\"Lead time\")
+        ax.set_title(f\"Model stages comparison for field {field}\")
+        #plt.savefig(
+        #    f\"reports/plots/scorecard/{metric}_{period}_{field}.png\",
+        #    bbox_inches=\"tight\",
+        #    dpi=100,
+        #)
+        plt.show()
         plt.close()
+    """,
+    name="_"
+)
+
+
+@app.cell
+def _(model, models):
+    # justify which model we choose
+    for m in models.keys():
+        df_val = models[model]["data"]
+        print(df_val)
+        #df_val['nrmse'] = df_val.loc[:,'rmse'] / df_val.loc[:,'pred_value'].mean()
+        break
     return
 
 
@@ -272,22 +292,18 @@ def _(mo):
 @app.cell
 def _(np):
     scorecard_fields = [
-        'z_50',
         'z_100',
         'z_250',
         'z_500',
         'z_850',
-        't_50',
         't_100',
         't_250',
         't_500',
         't_850',
-        'u_50',
         'u_100',
         'u_250',
         'u_500',
         'u_850',
-        'v_50',
         'v_100',
         'v_250',
         'v_500',
@@ -318,7 +334,7 @@ def _(gr_dl, gr_nwp, metric, np, scorecard_fields, scorecard_lt):
             norm_diff = (nwp_val - dl_val) / nwp_val
             processed_scorecard[2*i+1,j] = norm_diff
 
-    np.savetxt('reports/data/processed_scorecard.csv',processed_scorecard, delimiter=',', fmt='%4f')
+    np.savetxt('processed_scorecard.csv', processed_scorecard, delimiter=',', fmt='%4f')
     return (processed_scorecard,)
 
 

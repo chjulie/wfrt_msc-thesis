@@ -13,8 +13,7 @@ def _():
     import sys
     sys.path.append('../')
 
-    from data_constants import OBS_DATA_DIR
-    return OBS_DATA_DIR, go, mo, pd
+    return go, mo, pd
 
 
 @app.function
@@ -27,16 +26,18 @@ def show_serie_stats(serie):
 
 
 @app.cell
-def _(OBS_DATA_DIR):
-    file_name = f"../../{OBS_DATA_DIR}/20251126_verif_eccc_obs.csv"
+def _():
+    file_name = f"../../data/processed_eccc_bch_obs.csv"
     return (file_name,)
 
 
 @app.cell
 def _(file_name, pd):
-    df = pd.read_csv(file_name)
-    df.TEMP = df.TEMP.apply(lambda x: x + 273.15)
-    df.head(5)
+    df = pd.read_csv(file_name, converters={
+                'UTC_DATE': lambda x : x[:-6]
+            }).drop(columns=["Unnamed: 0"])
+    df['TEMP_kelvin'] = df.TEMP.apply(lambda x: x + 273.15)
+    df.describe()
     return (df,)
 
 
@@ -50,18 +51,6 @@ def _(df):
 def _(df):
     # show statistics for each column
     df.describe(include='all')
-    return
-
-
-@app.cell
-def _(df):
-    df.TEMP
-    return
-
-
-@app.cell
-def _(df):
-    df.x
     return
 
 
@@ -112,9 +101,9 @@ def _(go, pd):
 
 @app.cell
 def _(df, plot_values):
-    date = "2025-08-01T08:00:00"
+    date = "2023-08-01 06:00:00"
     print(date)
-    daily_df = df[(df["UTC_DATE"]=="2025-08-01T16:00:00")]
+    daily_df = df[(df["UTC_DATE"]==date)]
     daily_df.describe()
     plot_values(daily_df, "TEMP")
     return
