@@ -137,16 +137,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     # --------------------------------------------------------------
-    # climatex_ds = xr.open_dataset(f"{FIR_SCRATCH}/data/cleaned_data/anemoi-climatex-training-6h-20230101-20231231.zarr", engine='zarr')
-    # for i,a in enumerate(climatex_ds.attrs['variables']):
-    #     print(i,a)
-    # print(climatex_ds)
-
-    # --------------------------------------------------------------
-
-    date_range = pd.date_range(
+    # date_range = pd.date_range(
+    #     start=args.start_date, end=args.end_date
+    # )  # should be at 00 everyday
+    
+    daily_range = pd.date_range(
         start=args.start_date, end=args.end_date
-    )  # should be at 00 everyday
+    )  # should be at 00,06,12,18 everyday
+    offsets = [
+        pd.Timedelta(hours=0),
+        pd.Timedelta(hours=6),
+        pd.Timedelta(hours=12),
+        pd.Timedelta(hours=18),
+    ]
+    date_range = [day + off for day in daily_range for off in offsets]
 
     # print(" - daterange: ", date_range)
 

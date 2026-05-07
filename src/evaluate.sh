@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# run with : sbatch src/evaluate.sh 2023-01-01 2023-02-01 stage-c olivia
+# run with : sbatch src/evaluate.sh 2023-01-01 2023-12-31 bris olivia
 
 #SBATCH --job-name=evaluate
 #SBATCH --account=nn10090k
 #SBATCH --partition=accel
 #SBATCH --gpus=1
-#SBATCH --time=04:00:00
+#SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=32    # All CPU cores of one Grace-Hopper card
 #SBATCH --mem=100G    # Amount of CPU memory
 #SBATCH --output=../logs/evaluate_logs/evaluate_%j.out

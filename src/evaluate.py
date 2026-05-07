@@ -41,15 +41,21 @@ if __name__ == "__main__":
 
     # -----------------------------------------------------------------
 
-    date_range = pd.date_range(
+    daily_range = pd.date_range(
         start=args.start_date, end=args.end_date
-    )  # should be at 00 everyday
-
+    )  # should be at 00,06,12,18 everyday
+    offsets = [
+        pd.Timedelta(hours=0),
+        pd.Timedelta(hours=6),
+        pd.Timedelta(hours=12),
+        pd.Timedelta(hours=18),
+    ]
+    date_range = [day + off for day in daily_range for off in offsets]
 
     print(" > Instantiating evaluator", flush=True)
     evaluator = model_evaluator_factory(
         model_name=args.model,
-        date_range=date_range,
+        date_range=daily_range,
         lead_times=EVAL_LEAD_TIMES,
         system=args.system,
     )

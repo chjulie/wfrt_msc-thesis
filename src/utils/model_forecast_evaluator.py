@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 from pyresample import geometry, bilinear, kd_tree
 import os
 
+from scipy.interpolate import RBFInterpolator, LinearNDInterpolator, NearestNDInterpolator
+
 from utils.data_constants import (
     PRED_DATA_DIR,
     ERROR_DATA_DIR,
@@ -119,7 +121,7 @@ class ModelEvaluator(ABC):
         s_latitudes = self.current_obs_data_df.y.values
         self.stations_coords = np.column_stack((s_longitudes, s_latitudes))
 
-    def rmse(self, field: str):
+    def rmse(self, field: str, forecast_data):
         field_obs = OBS_EVAL_FIELDS.get(field)
         if field == "2t":
             # TODO : convert obs to kelvin
@@ -130,9 +132,12 @@ class ModelEvaluator(ABC):
             observations = self.current_obs_data_df[field_obs]
 
         assert (
-            self.model_resampled_data.shape == observations.shape
+            forecast_data.shape == observations.shape
         ), "self.model_resampled_data and self.obs_data must have the same shape"
-        rmse = np.sqrt(np.power(self.model_resampled_data - observations, 2))
+        #     self.model_resampled_data.shape == observations.shape
+        # ), "self.model_resampled_data and self.obs_data must have the same shape"
+        # rmse = np.sqrt(np.power(self.model_resampled_data - observations, 2))
+        rmse = np.sqrt(np.power(forecast_data - observations, 2))
 
         df = pd.DataFrame(
             data={
@@ -148,8 +153,16 @@ class ModelEvaluator(ABC):
                 "pred_value": self.model_resampled_data,
             }
         )
+
+        # print(f" [INFO] observation : {observations.mean()}")
+        # print(f" [INFO] rmse : {rmse.mean()}")
         # append to existing error df
         self.error_df = pd.concat((self.error_df, df), axis=0)
+
+    @staticmethod
+    def fix(lons):
+        # Shift the longitudes from 0-360 to -180-180
+        return np.where(lons > 180, lons - 360, lons)
 
     def get_prediction_at_station_loc(self, data: np.ndarray | xr.DataArray):
         """
@@ -157,8 +170,9 @@ class ModelEvaluator(ABC):
         (equivalent to utils.resampling_utils.pyresample_resampling())
         """
         src_grid = geometry.SwathDefinition(
-            lons=self.coords[:, 0], lats=self.coords[:, 1]
+            lons=self.fix(self.coords[:, 0]), lats=self.coords[:, 1]
         )
+        # X, Y = np.meshgrid(self.stations_coords[:, 0], self.stations_coords[:, 1])
         tgt_grid = geometry.SwathDefinition(
             lons=self.stations_coords[:, 0], lats=self.stations_coords[:, 1]
         )
@@ -166,13 +180,27 @@ class ModelEvaluator(ABC):
         if hasattr(data, "values"):
             data = data.values
 
+        # resampled_data = kd_tree.resample_gauss(
+        #     src_grid,
+        #     data,
+        #     tgt_grid,
+        #     radius_of_influence=3000,
+        #     sigmas=25000,
+        # )
+
+        # resampled_data = LinearNDInterpolator(self.coords, data)(self.stations_coords)
+        # resampled_data = NearestNDInterpolator(self.coords, data)(self.stations_coords)
+
         resampled_data = kd_tree.resample_nearest(
             source_geo_def=src_grid,
             data=data,
             target_geo_def=tgt_grid,
             radius_of_influence=50000,
         )
+
         self.model_resampled_data = resampled_data
+
+        return resampled_data
 
     def save_error_df(self):
         if self.system == "fir":
@@ -307,14 +335,14 @@ class DLModelEvaluator(ModelEvaluator):
         )
 
         self.forecast_folder = (
-            f"/cluster/projects/nn10090k/results/juchar/{model_name}-lam-inference"
+            f"/cluster/projects/nn10090k/results/juchar/{model_name}-sfc-lam-inference"
         )
         print(f" [INFO] Looking for inference results in {self.forecast_folder}")
         self.forecast_ds = None
 
-    @property
-    def predictions_data_path(self):
-        return
+    # @property
+    # def predictions_data_path(self):
+    #     return
 
     def compute_coordinates(self):
         self.coords = np.column_stack(
@@ -324,7 +352,7 @@ class DLModelEvaluator(ModelEvaluator):
     def evaluate(self):
 
         for initial_date in self.date_range:
-            print(f" [INFO] ⚡️ initial date: {initial_date}", flush=True)
+            print(f"\n [INFO] ⚡️ initial date: {initial_date}", flush=True)
             self.current_initial_date = initial_date
 
             try:
@@ -343,9 +371,9 @@ class DLModelEvaluator(ModelEvaluator):
             for lead_time in EVAL_LEAD_TIMES:
                 self.current_lead_time = lead_time
                 self.get_station_observation()
+                print(f"[INFO] lead time : {lead_time}, xtime : {self.xtime(initial_date, lead_time)}")
 
                 for field_mod, field_obs in OBS_EVAL_FIELDS.items():
-
                     if field_mod == "10ff":
                         try:
                             u10 = self.forecast_ds["10u"].sel(
@@ -360,7 +388,7 @@ class DLModelEvaluator(ModelEvaluator):
                             field_data = field_data.magnitude
                         except KeyError as e:
                             print(
-                                f"⚠️ [WARNING] Lead time {lead_time} not found in file {self.predictions_data_path.split('/')[-1]}",
+                                f"⚠️ [WARNING] Lead time {lead_time} not found in file {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc",
                                 flush=True,
                             )
                             continue
@@ -371,7 +399,7 @@ class DLModelEvaluator(ModelEvaluator):
                             )
                         except KeyError as e:
                             print(
-                                f"⚠️ [WARNING] Lead time {lead_time} not found in file {self.predictions_data_path.split('/')[-1]}",
+                                f"⚠️ [WARNING] Lead time {lead_time} not found in file {self.forecast_folder}/{initial_date.strftime("%Y%m%dT%H")}.nc",
                                 flush=True,
                             )
                             continue
@@ -379,10 +407,10 @@ class DLModelEvaluator(ModelEvaluator):
                     if self.counter == 0:
                         self.compute_coordinates()
 
-                    self.get_prediction_at_station_loc(field_data)
-                    self.rmse(field_mod)
+                    forecast_data = self.get_prediction_at_station_loc(field_data)
+                    self.rmse(field_mod, forecast_data)
 
                     self.counter += 1
 
-            self.forecast_ds.close()
-            self.save_error_df()
+        self.forecast_ds.close()
+        self.save_error_df()

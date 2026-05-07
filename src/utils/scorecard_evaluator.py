@@ -92,23 +92,23 @@ class ScorecardEvaluator(ABC):
             "10v": 1,
             "tp": 61,
             "msl": 25,
-            "z_50": 15,
-            "z_100": 8,
+            # "z_50": 15,
+            # "z_100": 8,
             "z_250": 12,
             "z_500": 16,
             "z_850": 18,
-            "t_50": 54,
-            "t_100": 47,
+            # "t_50": 54,
+            # "t_100": 47,
             "t_250": 51,
             "t_500": 55,
             "t_850": 57,
-            "u_50": 69,
-            "u_100": 62,
+            # "u_50": 69,
+            # "u_100": 62,
             "u_250": 66,
             "u_500": 70,
             "u_850": 72,
-            "v_50": 81,
-            "v_100": 86,
+            # "v_50": 81,
+            # "v_100": 86,
             "v_250": 78,
             "v_500": 82,
             "v_850": 84,
@@ -351,6 +351,12 @@ class RegNWPScorecardEvaluator(ScorecardEvaluator):
                                 )
                                 .values.flatten()
                             )
+                        elif field=='tp':
+                            raw_wrf_field = 1e-3 * (
+                                self.ds[field]
+                                .sel(XTIME=self.xtime(initial_date, lead_time))
+                                .values.flatten()
+                            )
                         else:
                             raw_wrf_field = (
                                 self.ds[field]
@@ -532,6 +538,8 @@ class RegDLScorecardEvaluator(ScorecardEvaluator):
                     "model": self.model_name,
                     "rmse": rmse,
                     "mse": mse,
+                    "gt_value": truth_fields.mean(axis=1),
+                    "forecast_value": raw_prediction_fields.mean(axis=1), 
                 })
 
                 self.scorecard_df = pd.concat([self.scorecard_df, rows], ignore_index=True)
